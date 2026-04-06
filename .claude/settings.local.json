@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "additionalDirectories": [
+      "C:\\Users\\willi"
+    ],
+    "allow": [
+      "mcp__supabase__list_tables"
+    ]
+  }
+}

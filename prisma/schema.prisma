@@ -1,0 +1,131 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Categoria {
+  id            Int            @id @default(autoincrement())
+  nombre        String         @unique
+  creadoEn      DateTime       @default(now())
+  subcategorias Subcategoria[]
+  productos     Producto[]
+
+  @@map("categorias")
+}
+
+model Subcategoria {
+  id          Int        @id @default(autoincrement())
+  nombre      String
+  categoriaId Int
+  creadoEn    DateTime   @default(now())
+  categoria   Categoria  @relation(fields: [categoriaId], references: [id], onDelete: Cascade)
+  productos   Producto[]
+
+  @@unique([nombre, categoriaId])
+  @@map("subcategorias")
+}
+
+model Material {
+  id       Int        @id @default(autoincrement())
+  nombre   String     @unique
+  creadoEn DateTime   @default(now())
+  productos Producto[]
+
+  @@map("materiales")
+}
+
+model Etiqueta {
+  id       Int                @id @default(autoincrement())
+  nombre   String             @unique
+  color    String             @default("#6b7280")
+  creadoEn DateTime           @default(now())
+  productos ProductoEtiqueta[]
+
+  @@map("etiquetas")
+}
+
+model ProductoEtiqueta {
+  productoId  Int
+  etiquetaId  Int
+  producto    Producto  @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  etiqueta    Etiqueta  @relation(fields: [etiquetaId], references: [id], onDelete: Cascade)
+
+  @@id([productoId, etiquetaId])
+  @@map("producto_etiqueta")
+}
+
+model Producto {
+  id              Int                @id @default(autoincrement())
+  nombreLargo     String
+  nombreCorto     String
+  materialId      Int?
+  caracteristicas String?
+  categoriaId     Int?
+  subcategoriaId  Int?
+  creadoEn        DateTime           @default(now())
+  actualizadoEn   DateTime           @updatedAt
+  material        Material?          @relation(fields: [materialId], references: [id])
+  categoria       Categoria?         @relation(fields: [categoriaId], references: [id])
+  subcategoria    Subcategoria?      @relation(fields: [subcategoriaId], references: [id])
+  proveedores     ProductoProveedor[]
+  etiquetas       ProductoEtiqueta[]
+
+  @@map("productos")
+}
+
+model Proveedor {
+  id             Int                @id @default(autoincrement())
+  nombreEmpresa  String
+  nombreContacto String
+  nroLicencia    String?
+  nroWechat      String?
+  nroWhatsapp    String?
+  direccion      String?
+  lat            Float?
+  lng            Float?
+  fotos          FotoProveedor[]
+  creadoEn       DateTime           @default(now())
+  actualizadoEn  DateTime           @updatedAt
+  productos      ProductoProveedor[]
+
+  @@map("proveedores")
+}
+
+model ProductoProveedor {
+  id              Int       @id @default(autoincrement())
+  productoId      Int
+  proveedorId     Int
+  precio          Float?
+  moneda          String    @default("USD")
+  moq             Int?
+  notas           String?
+  caracteristicas String?
+  creadoEn        DateTime  @default(now())
+  actualizadoEn   DateTime  @updatedAt
+
+  producto  Producto  @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  proveedor Proveedor @relation(fields: [proveedorId], references: [id], onDelete: Cascade)
+
+  @@unique([productoId, proveedorId])
+  @@map("producto_proveedor")
+}
+
+model FotoProveedor {
+  id          Int       @id @default(autoincrement())
+  proveedorId Int
+  url         String
+  descripcion String?
+  creadoEn    DateTime  @default(now())
+
+  proveedor Proveedor @relation(fields: [proveedorId], references: [id], onDelete: Cascade)
+
+  @@map("fotos_proveedor")
+}

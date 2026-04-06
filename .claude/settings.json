@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx prisma:*)",
+      "Bash(ls -la \"c:/ClaudeCode/Proyectos/App China 2026/\"*.env*)",
+      "Bash(ls -la \"c:/ClaudeCode/Proyectos/App China 2026/.env\"*)"
+    ]
+  }
+}
