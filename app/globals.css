@@ -4,28 +4,169 @@
 
 :root {
   --china-red: #DE2910;
+  --china-red-dark: #a31f0c;
   --china-gold: #FFDE00;
-  --bg-dark: #0d1117;
+  --china-gold-dim: #c9a800;
+  --bg-dark: #07090f;
+  --bg-card: #0e1420;
+  --bg-card-hover: #141c2e;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   background-color: var(--bg-dark);
-  color: #e5e7eb;
-  font-family: 'Inter', sans-serif;
+  color: #e2e8f0;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
-/* Scrollbar personalizado */
-::-webkit-scrollbar {
-  width: 6px;
+/* ── Scrollbar ─────────────────────────────── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: #07090f; }
+::-webkit-scrollbar-thumb { background: #DE2910; border-radius: 3px; }
+
+/* ── Keyframes ─────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
 }
-::-webkit-scrollbar-track {
-  background: #1a1a2e;
+@keyframes red-pulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(222,41,16,0.35); }
+  50%       { box-shadow: 0 0 28px rgba(222,41,16,0.75), 0 0 60px rgba(222,41,16,0.2); }
 }
-::-webkit-scrollbar-thumb {
-  background: #DE2910;
-  border-radius: 3px;
+@keyframes gold-pulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(255,222,0,0.25); }
+  50%       { box-shadow: 0 0 22px rgba(255,222,0,0.55), 0 0 45px rgba(255,222,0,0.15); }
+}
+@keyframes slide-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes dragon-drift {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33%       { transform: translateY(-8px) rotate(1deg); }
+  66%       { transform: translateY(-4px) rotate(-0.5deg); }
+}
+@keyframes bar-expand {
+  from { width: 0; }
+  to   { width: 100%; }
+}
+
+/* ── Utility classes ───────────────────────── */
+.animate-red-pulse  { animation: red-pulse  2.8s ease-in-out infinite; }
+.animate-gold-pulse { animation: gold-pulse 2.8s ease-in-out infinite; }
+.animate-slide-in   { animation: slide-in   0.5s ease-out both; }
+.animate-dragon     { animation: dragon-drift 6s ease-in-out infinite; }
+
+/* Gold shimmer */
+.shimmer-gold {
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255,222,0,0.18) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2.4s ease-in-out infinite;
+}
+
+/* Pattern de fondo sutil — rejilla china */
+.china-pattern {
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      rgba(222,41,16,0.04) 0px, rgba(222,41,16,0.04) 1px,
+      transparent 1px, transparent 14px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      rgba(255,222,0,0.025) 0px, rgba(255,222,0,0.025) 1px,
+      transparent 1px, transparent 14px
+    );
+}
+
+/* Texto degradado oro */
+.text-gold {
+  background: linear-gradient(135deg, #FFE866 0%, #FFDE00 45%, #d4a800 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Texto degradado rojo */
+.text-red-ch {
+  background: linear-gradient(135deg, #ff5533 0%, #DE2910 55%, #9b1c0a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Card base */
+.card-china {
+  background: var(--bg-card);
+  border: 1px solid rgba(222,41,16,0.12);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-china:hover {
+  border-color: rgba(222,41,16,0.45);
+  background: var(--bg-card-hover);
+  box-shadow:
+    0 12px 40px rgba(222,41,16,0.18),
+    0 0 0 1px rgba(222,41,16,0.08),
+    inset 0 1px 0 rgba(255,222,0,0.06);
+  transform: translateY(-3px);
+}
+
+/* Línea decorativa roja animada */
+.red-bar {
+  height: 3px;
+  background: linear-gradient(90deg, #DE2910, #ff6644, #FFDE00, #DE2910);
+  background-size: 300% 100%;
+  animation: shimmer 3s linear infinite;
+}
+
+/* Borde esquinas estilo chino */
+.china-frame {
+  position: relative;
+}
+.china-frame::before,
+.china-frame::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-color: #DE2910;
+  border-style: solid;
+}
+.china-frame::before {
+  top: -1px; left: -1px;
+  border-width: 2px 0 0 2px;
+}
+.china-frame::after {
+  bottom: -1px; right: -1px;
+  border-width: 0 2px 2px 0;
+}
+
+/* Separador decorativo */
+.divider-china {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255,222,0,0.4);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.divider-china::before,
+.divider-china::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(222,41,16,0.4), transparent);
+}
+
+/* Nav active pill */
+.nav-active {
+  background: linear-gradient(135deg, rgba(222,41,16,0.25), rgba(222,41,16,0.1));
+  border: 1px solid rgba(222,41,16,0.35);
+  color: #ff6644;
 }
