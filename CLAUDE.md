@@ -64,6 +64,20 @@ Cuatro modelos en `prisma/schema.prisma`:
 
 Después de completar cualquier bloque de cambios significativos (nuevas funcionalidades, correcciones, actualizaciones de esquema, nuevos componentes), hacer `git add` + `git commit` + `git push` de forma automática **sin esperar que el usuario lo solicite**. Esto dispara el deploy automático en Netlify.
 
+### Checklist antes de cada push
+
+Verificar siempre antes de hacer push:
+
+1. **`proxy.ts` en lugar de `middleware.ts`** — Next.js 16 deprecó `middleware.ts`. El build local pasa con warning pero Netlify falla en producción. Verificar:
+   ```bash
+   ls middleware.ts 2>/dev/null && echo "⚠️  Renombrar a proxy.ts" || echo "✓ OK"
+   ```
+   La función exportada debe llamarse `proxy`, no `middleware`.
+
+2. **Sin errores de TypeScript** — correr `npx tsc --noEmit` antes del push.
+
+3. **Variables de entorno en Netlify** — si se agregan nuevas variables al `.env`, recordar añadirlas también en el panel de Netlify.
+
 ### Decisiones de diseño
 
 - La relación **ProductoProveedor** es el núcleo del sistema: concentra precio, MOQ y características diferenciales por proveedor para cada producto.
