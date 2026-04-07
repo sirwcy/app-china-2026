@@ -58,6 +58,12 @@ Cuatro modelos en `prisma/schema.prisma`:
 /api/relaciones      → CRUD ProductoProveedor (precio, MOQ, características)
 ```
 
+## Flujo de trabajo
+
+### Commit + Push automático
+
+Después de completar cualquier bloque de cambios significativos (nuevas funcionalidades, correcciones, actualizaciones de esquema, nuevos componentes), hacer `git add` + `git commit` + `git push` de forma automática **sin esperar que el usuario lo solicite**. Esto dispara el deploy automático en Netlify.
+
 ### Decisiones de diseño
 
 - La relación **ProductoProveedor** es el núcleo del sistema: concentra precio, MOQ y características diferenciales por proveedor para cada producto.
