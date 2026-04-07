@@ -14,6 +14,11 @@ export const productoSchema = z.object({
   categoriaId: z.number().int().positive().optional().nullable(),
   subcategoriaId: z.number().int().positive().optional().nullable(),
   etiquetaIds: z.array(z.number().int().positive()).optional().default([]),
+  requiereMedidas: z.boolean().optional().default(false),
+  ancho: z.number().positive().optional().nullable(),
+  largo: z.number().positive().optional().nullable(),
+  alto: z.number().positive().optional().nullable(),
+  espesor: z.number().positive().optional().nullable(),
 });
 
 export type ProductoFormData = z.infer<typeof productoSchema>;

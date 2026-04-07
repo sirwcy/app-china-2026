@@ -70,6 +70,11 @@ model Producto {
   caracteristicas String?
   categoriaId     Int?
   subcategoriaId  Int?
+  requiereMedidas Boolean            @default(false)
+  ancho           Float?
+  largo           Float?
+  alto            Float?
+  espesor         Float?
   creadoEn        DateTime           @default(now())
   actualizadoEn   DateTime           @updatedAt
   material        Material?          @relation(fields: [materialId], references: [id])
@@ -113,9 +118,7 @@ model ProductoProveedor {
   id              Int       @id @default(autoincrement())
   productoId      Int
   proveedorId     Int
-  precio          Float?
   moneda          String    @default("USD")
-  moq             Int?
   notas           String?
   caracteristicas String?
   creadoEn        DateTime  @default(now())
@@ -123,9 +126,22 @@ model ProductoProveedor {
 
   producto  Producto  @relation(fields: [productoId], references: [id], onDelete: Cascade)
   proveedor Proveedor @relation(fields: [proveedorId], references: [id], onDelete: Cascade)
+  precios   PrecioProveedor[]
 
   @@unique([productoId, proveedorId])
   @@map("producto_proveedor")
+}
+
+model PrecioProveedor {
+  id                  Int               @id @default(autoincrement())
+  productoProveedorId Int
+  precio              Float
+  moq                 Int
+  creadoEn            DateTime          @default(now())
+
+  productoProveedor   ProductoProveedor @relation(fields: [productoProveedorId], references: [id], onDelete: Cascade)
+
+  @@map("precio_proveedor")
 }
 
 model FotoProveedor {

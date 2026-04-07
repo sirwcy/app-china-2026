@@ -21,6 +21,7 @@ export default async function ProveedorDetallePage({ params }: PageProps) {
       orderBy: { creadoEn: "asc" },
       include: {
         producto: { select: { id: true, nombreCorto: true, nombreLargo: true } },
+        precios: { orderBy: { moq: "asc" } },
       },
     }),
     prisma.catalogoProveedor.findMany({

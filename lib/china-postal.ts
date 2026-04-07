@@ -12,6 +12,27 @@ export interface ZonaPostal {
   tipo: "municipio" | "provincia" | "region_autonoma";
   ciudad?: string;
   ciudadZh?: string;
+  distrito?: string;
+}
+
+// Coordenadas de referencia para cálculo de distancias
+export const GUANGZHOU_COORDS = { lat: 23.1291, lng: 113.2644 };
+export const YIWU_COORDS = { lat: 29.3074, lng: 120.0750 };
+
+/** Calcula distancia en km entre dos coordenadas usando la fórmula de Haversine */
+export function calcularDistanciaKm(
+  lat1: number, lng1: number,
+  lat2: number, lng2: number
+): number {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Math.round(R * c);
 }
 
 // ─── Provincias por primeros 2 dígitos ────────────────────────────────────────
@@ -469,6 +490,157 @@ const CIUDADES: Record<string, { ciudad: string; ciudadZh: string }> = {
   "4290": { ciudad: "Xiangxi",      ciudadZh: "湘西" },
 };
 
+// ─── Distritos por prefijo de 5 dígitos (aproximado) ─────────────────────────
+const DISTRITOS: Record<string, string> = {
+  // Guangzhou (51)
+  "51000": "Yuexiu / Centro",
+  "51001": "Yuexiu",
+  "51002": "Haizhu",
+  "51003": "Liwan",
+  "51004": "Tianhe",
+  "51005": "Baiyun",
+  "51006": "Panyu",
+  "51007": "Huangpu",
+  "51008": "Huadu",
+  "51009": "Zengcheng",
+  "51010": "Tianhe",
+  "51011": "Tianhe Norte",
+  "51012": "Guangzhou Dev. Zone",
+  "51013": "Luogang",
+  "51014": "Conghua",
+  "51015": "Huadu",
+  "51016": "Nansha",
+  "51018": "Nansha",
+  "51019": "Conghua",
+  // Shenzhen (518)
+  "51800": "Futian",
+  "51801": "Luohu",
+  "51802": "Nanshan",
+  "51803": "Yantian",
+  "51804": "Bao'an",
+  "51805": "Longhua",
+  "51806": "Longgang",
+  "51807": "Pingshan",
+  "51808": "Guangming",
+  "51809": "Dapeng",
+  // Dongguan (523)
+  "52300": "Guancheng",
+  "52301": "Dongcheng",
+  "52302": "Nancheng",
+  "52306": "Wanjiang",
+  "52310": "Tangxia",
+  "52313": "Fenggang",
+  "52315": "Zhangmutou",
+  "52316": "Qingxi",
+  "52318": "Dongkeng",
+  "52319": "Dalang",
+  // Foshan (528)
+  "52800": "Chancheng",
+  "52801": "Guicheng",
+  "52802": "Nanhai",
+  "52803": "Shunde",
+  "52808": "Sanshui",
+  "52809": "Gaoming",
+  "52810": "Gaoming",
+  "52811": "Nanhai",
+  // Zhongshan (528)
+  "52840": "Shiqi",
+  "52841": "Dongfeng",
+  "52845": "Guzhen",
+  // Shanghai (200)
+  "20000": "Huangpu",
+  "20001": "Huangpu",
+  "20002": "Yangpu",
+  "20003": "Luwan",
+  "20004": "Xuhui",
+  "20005": "Changning",
+  "20006": "Jing'an",
+  "20007": "Putuo",
+  "20008": "Zhabei",
+  "20009": "Hongkou",
+  "20010": "Minhang",
+  "20011": "Baoshan",
+  "20012": "Jiading",
+  "20013": "Pudong Nuevo",
+  "20015": "Pudong",
+  "20016": "Fengxian",
+  "20025": "Songjiang",
+  "20030": "Jinshan",
+  "20040": "Qingpu",
+  // Beijing (100)
+  "10000": "Dongcheng",
+  "10001": "Xicheng",
+  "10002": "Xuanwu",
+  "10003": "Chongwen",
+  "10004": "Chaoyangmen",
+  "10005": "Fengtai",
+  "10006": "Shijingshan",
+  "10007": "Haidian",
+  "10008": "Haidian Norte",
+  "10009": "Mentougou",
+  "10010": "Chaoyang",
+  "10011": "Chaoyang Este",
+  "10012": "Chaoyang Sur",
+  "10013": "Tongzhou",
+  "10015": "Shunyi",
+  "10017": "Daxing",
+  "10018": "Yanqing",
+  // Yiwu (322)
+  "32200": "Choucheng",
+  "32201": "Jiangdong",
+  "32202": "Beiyuan",
+  "32203": "Futian",
+  "32204": "Suxi",
+  "32205": "Fotang",
+  "32206": "Shangxi",
+  // Hangzhou (310)
+  "31000": "Shangcheng",
+  "31001": "Xiacheng",
+  "31002": "Jianggan",
+  "31003": "Gongshu",
+  "31004": "Xihu",
+  "31005": "Binjiang",
+  "31006": "Xiaoshan",
+  "31007": "Yuhang",
+  "31008": "Fuyang",
+  "31009": "Lin'an",
+  // Wuhan (430)
+  "43000": "Jiang'an",
+  "43001": "Jianghan",
+  "43002": "Qiaokou",
+  "43003": "Hanyang",
+  "43004": "Wuchang",
+  "43005": "Qingshan",
+  "43006": "Hongshan",
+  "43007": "Dongxihu",
+  "43008": "Hannan",
+  "43009": "Caidian",
+  "43010": "Jiangxia",
+  "43011": "Huangpi",
+  "43012": "Xinzhou",
+  // Chengdu (610)
+  "61000": "Jinjiang",
+  "61001": "Qingyang",
+  "61002": "Jinniu",
+  "61003": "Wuhou",
+  "61004": "Chenghua",
+  "61005": "Longquanyi",
+  "61006": "Qingbaijiang",
+  "61007": "Xindu",
+  "61008": "Wenjiang",
+  "61009": "Shuangliu",
+  // Xi'an (710)
+  "71000": "Beilin",
+  "71001": "Lianhu",
+  "71002": "Baqiao",
+  "71003": "Xincheng",
+  "71004": "Yanta",
+  "71005": "Yanling",
+  "71006": "Weiyang",
+  "71007": "Yanliang",
+  "71009": "Chang'an",
+};
+
 // ─── Coordenadas aproximadas (centroide de ciudad/provincia) ─────────────────
 const COORDS_CIUDADES: Record<string, { lat: number; lng: number }> = {
   "北京":   { lat: 39.9042, lng: 116.4074 },
@@ -593,11 +765,25 @@ export function buscarCodigoPostal(codigo: string): ZonaPostal | null {
 
   const base: ZonaPostal = { ...prov };
 
+  // Para municipios directos (Beijing, Shanghai, Tianjin, Chongqing),
+  // la ciudad es el mismo que la provincia
+  if (prov.tipo === "municipio") {
+    base.ciudad = prov.provincia;
+    base.ciudadZh = prov.provinciaZh.replace(/市$/, "");
+  }
+
   if (clean.length >= 4) {
     const ciudad = CIUDADES[clean.slice(0, 4)];
     if (ciudad) {
       base.ciudad = ciudad.ciudad;
       base.ciudadZh = ciudad.ciudadZh;
+    }
+  }
+
+  if (clean.length >= 5) {
+    const dist = DISTRITOS[clean.slice(0, 5)];
+    if (dist) {
+      base.distrito = dist;
     }
   }
 

@@ -17,14 +17,19 @@ interface SubcategoriaOption extends SelectOption {
   categoriaId: number;
 }
 
+interface PrecioTier {
+  id: number;
+  precio: number;
+  moq: number;
+}
+
 interface Relacion {
   id: number;
   proveedorId: number;
-  precio: number | null;
   moneda: string;
-  moq: number | null;
   notas: string | null;
   caracteristicas: string | null;
+  precios: PrecioTier[];
   proveedor: {
     id: number;
     nombreEmpresa: string;
@@ -42,6 +47,11 @@ interface Producto {
   materialId: number | null;
   categoriaId: number | null;
   subcategoriaId: number | null;
+  requiereMedidas?: boolean;
+  ancho?: number | null;
+  largo?: number | null;
+  alto?: number | null;
+  espesor?: number | null;
   material: { nombre: string } | null;
   categoria: { nombre: string } | null;
   subcategoria: { nombre: string } | null;
@@ -129,9 +139,42 @@ export default function ProductoDetalleCliente({
 
       {/* Características del producto */}
       {producto.caracteristicas && (
-        <div className="mb-6 p-4 rounded-xl bg-white/4 border border-white/8">
+        <div className="mb-4 p-4 rounded-xl bg-white/4 border border-white/8">
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1.5">Características</p>
           <p className="text-sm text-gray-300 leading-relaxed">{producto.caracteristicas}</p>
+        </div>
+      )}
+
+      {/* Medidas */}
+      {producto.requiereMedidas && (producto.ancho || producto.largo || producto.alto || producto.espesor) && (
+        <div className="mb-6 p-4 rounded-xl bg-white/4 border border-white/8">
+          <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Medidas</p>
+          <div className="flex flex-wrap gap-4">
+            {producto.ancho != null && (
+              <div className="text-center">
+                <p className="text-[10px] text-gray-500 uppercase">Ancho</p>
+                <p className="text-sm font-semibold text-gray-200">{producto.ancho} cm</p>
+              </div>
+            )}
+            {producto.largo != null && (
+              <div className="text-center">
+                <p className="text-[10px] text-gray-500 uppercase">Largo</p>
+                <p className="text-sm font-semibold text-gray-200">{producto.largo} cm</p>
+              </div>
+            )}
+            {producto.alto != null && (
+              <div className="text-center">
+                <p className="text-[10px] text-gray-500 uppercase">Alto</p>
+                <p className="text-sm font-semibold text-gray-200">{producto.alto} cm</p>
+              </div>
+            )}
+            {producto.espesor != null && (
+              <div className="text-center">
+                <p className="text-[10px] text-gray-500 uppercase">Espesor</p>
+                <p className="text-sm font-semibold text-gray-200">{producto.espesor} cm</p>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -196,6 +239,7 @@ export default function ProductoDetalleCliente({
         title={relacionEditar ? "Editar relación con proveedor" : "Vincular proveedor"}
       >
         <RelacionForm
+          key={relacionEditar?.id ?? "nueva"}
           productoId={producto.id}
           proveedores={todosLosProveedores}
           proveedoresVinculadosIds={proveedoresVinculadosIds}
@@ -266,25 +310,25 @@ function RelacionCard({
             )}
           </div>
 
-          {/* Precio + MOQ */}
-          <div className="flex flex-wrap gap-3 mt-2">
-            {relacion.precio != null ? (
-              <div className="flex items-center gap-1 text-sm">
-                <DollarSign size={13} className="text-[#FFDE00]" />
-                <span className="font-semibold text-[#FFDE00]">
-                  {monedaSymbol}{relacion.precio.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
-                </span>
-                <span className="text-gray-500 text-xs">{relacion.moneda}</span>
-              </div>
-            ) : (
+          {/* Precios por MOQ */}
+          <div className="flex flex-wrap gap-2 mt-2">
+            {relacion.precios.length === 0 ? (
               <span className="text-gray-600 text-xs italic">Sin precio registrado</span>
-            )}
-
-            {relacion.moq != null && (
-              <div className="flex items-center gap-1 text-xs text-gray-400">
-                <Package2 size={12} />
-                <span>MOQ: <strong className="text-gray-200">{relacion.moq.toLocaleString()}</strong> uds.</span>
-              </div>
+            ) : (
+              relacion.precios.map((tier) => (
+                <div key={tier.id} className="flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-lg px-2.5 py-1">
+                  <DollarSign size={11} className="text-[#FFDE00] shrink-0" />
+                  <span className="font-semibold text-[#FFDE00] text-sm">
+                    {monedaSymbol}{tier.precio.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
+                  </span>
+                  <span className="text-gray-500 text-xs">{relacion.moneda}</span>
+                  <span className="text-gray-600 text-xs">·</span>
+                  <Package2 size={10} className="text-gray-500 shrink-0" />
+                  <span className="text-xs text-gray-400">
+                    MOQ <strong className="text-gray-300">{tier.moq.toLocaleString()}</strong>
+                  </span>
+                </div>
+              ))
             )}
           </div>
 

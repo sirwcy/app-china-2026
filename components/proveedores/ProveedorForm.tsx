@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { proveedorSchema, type ProveedorFormData } from "@/lib/validations/proveedor";
 import { crearProveedor, actualizarProveedor } from "@/lib/actions/proveedores";
-import { buscarCodigoPostal, getCoordsParaZona } from "@/lib/china-postal";
+import { buscarCodigoPostal, getCoordsParaZona, calcularDistanciaKm, GUANGZHOU_COORDS, YIWU_COORDS } from "@/lib/china-postal";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import OcrButton from "@/components/ui/OcrButton";
@@ -47,9 +47,8 @@ function MapaUbicacion({ lat, lng, ciudad, provincia }: { lat: number | null | u
       </div>
     );
   }
-  const delta = 0.8;
-  const bbox = `${lng - delta},${lat - delta},${lng + delta},${lat + delta}`;
-  const url = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
+  const url = `https://maps.google.com/maps?q=${lat},${lng}&z=12&output=embed&hl=es`;
+  const urlExterno = `https://www.google.com/maps?q=${lat},${lng}&z=12`;
   const label = [ciudad, provincia].filter(Boolean).join(" — ");
   return (
     <div className="flex flex-col gap-1.5">
@@ -62,14 +61,15 @@ function MapaUbicacion({ lat, lng, ciudad, provincia }: { lat: number | null | u
         className="w-full h-44 rounded-xl border border-white/10"
         title="Mapa de ubicación"
         loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
       />
       <a
-        href={`https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=10/${lat}/${lng}`}
+        href={urlExterno}
         target="_blank"
         rel="noopener noreferrer"
         className="text-[10px] text-gray-600 hover:text-gray-400 text-right transition-colors"
       >
-        Ver en OpenStreetMap ↗
+        Ver en Google Maps ↗
       </a>
     </div>
   );
@@ -120,11 +120,19 @@ export default function ProveedorForm({ proveedor, onSuccess, onCancel }: Provee
       const zona = buscarCodigoPostal(codigo);
       if (zona) {
         setValue("provincia", `${zona.provincia} (${zona.provinciaZh})`, { shouldDirty: true });
-        setValue("ciudad", zona.ciudad ? `${zona.ciudad} (${zona.ciudadZh ?? ""})` : "", { shouldDirty: true });
+        setValue("ciudad", zona.ciudad ? `${zona.ciudad}${zona.ciudadZh ? ` (${zona.ciudadZh})` : ""}` : "", { shouldDirty: true });
+        if (zona.distrito) {
+          setValue("distrito", zona.distrito, { shouldDirty: true });
+        }
         const coords = getCoordsParaZona(zona);
         if (coords) {
           setValue("lat", coords.lat, { shouldDirty: true });
           setValue("lng", coords.lng, { shouldDirty: true });
+          // Auto-calcular distancias a Guangzhou y Yiwu
+          const distGZ = calcularDistanciaKm(coords.lat, coords.lng, GUANGZHOU_COORDS.lat, GUANGZHOU_COORDS.lng);
+          const distYW = calcularDistanciaKm(coords.lat, coords.lng, YIWU_COORDS.lat, YIWU_COORDS.lng);
+          setValue("distanciaGuangzhou", distGZ, { shouldDirty: true });
+          setValue("distanciaYiwu", distYW, { shouldDirty: true });
         }
       }
     }
@@ -228,14 +236,15 @@ export default function ProveedorForm({ proveedor, onSuccess, onCancel }: Provee
             maxLength={6}
             placeholder="Ej: 510000"
             className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500 transition-colors focus:outline-none focus:ring-2 focus:ring-[#DE2910]/60 focus:border-[#DE2910]/60 hover:border-white/20 font-mono tracking-widest"
-            {...register("codigoPostal", {
-              onChange: (e) => {
-                e.target.value = e.target.value.replace(/\D/g, "").slice(0, 6);
-              },
-            })}
+            {...register("codigoPostal")}
+            onChange={(e) => {
+              const filtered = e.target.value.replace(/\D/g, "").slice(0, 6);
+              e.target.value = filtered;
+              setValue("codigoPostal", filtered, { shouldDirty: true, shouldValidate: false });
+            }}
           />
           <p className="text-xs text-gray-600">
-            6 dígitos — al completarlo se rellena provincia, ciudad y mapa automáticamente
+            6 dígitos — al completarlo se rellena provincia, ciudad, distrito y distancias automáticamente
           </p>
         </div>
 

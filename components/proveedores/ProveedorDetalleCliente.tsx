@@ -29,12 +29,17 @@ interface Proveedor {
   tiempoVueloYiwu: string | null;
 }
 
+interface PrecioTier {
+  id: number;
+  precio: number;
+  moq: number;
+}
+
 interface ProductoVinculado {
   id: number;
   productoId: number;
-  precio: number | null;
   moneda: string;
-  moq: number | null;
+  precios?: PrecioTier[];
   producto: { id: number; nombreCorto: string; nombreLargo: string };
 }
 
@@ -165,6 +170,9 @@ export default function ProveedorDetalleCliente({ proveedor, productos, catalogo
           <div className="flex flex-col gap-2">
             {productos.map((rel) => {
               const symbol = { USD: "$", CNY: "¥", EUR: "€" }[rel.moneda] ?? rel.moneda;
+              const precioMin = rel.precios?.length
+                ? rel.precios.reduce((min, p) => p.precio < min.precio ? p : min)
+                : null;
               return (
                 <Link
                   key={rel.id}
@@ -177,13 +185,15 @@ export default function ProveedorDetalleCliente({ proveedor, productos, catalogo
                     </p>
                     <p className="text-xs text-gray-500">{rel.producto.nombreLargo}</p>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-gray-400 shrink-0">
-                    {rel.precio != null && (
-                      <span className="text-[#FFDE00] font-semibold">
-                        {symbol}{rel.precio.toLocaleString()}
-                      </span>
+                  <div className="flex items-center gap-2 text-xs text-gray-400 shrink-0">
+                    {precioMin && (
+                      <>
+                        <span className="text-[#FFDE00] font-semibold">
+                          desde {symbol}{precioMin.precio.toLocaleString()}
+                        </span>
+                        <span className="text-gray-600">MOQ: {precioMin.moq}</span>
+                      </>
                     )}
-                    {rel.moq != null && <span>MOQ: {rel.moq}</span>}
                   </div>
                 </Link>
               );

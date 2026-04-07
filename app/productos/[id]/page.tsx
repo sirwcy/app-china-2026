@@ -24,7 +24,13 @@ export default async function ProductoDetallePage({ params }: PageProps) {
           subcategoria: true,
           etiquetas: { include: { etiqueta: true } },
         },
-      }),
+      }) as Promise<{
+        id: number; nombreLargo: string; nombreCorto: string; caracteristicas: string | null;
+        materialId: number | null; categoriaId: number | null; subcategoriaId: number | null;
+        requiereMedidas: boolean; ancho: number | null; largo: number | null; alto: number | null; espesor: number | null;
+        material: { nombre: string } | null; categoria: { nombre: string } | null; subcategoria: { nombre: string } | null;
+        etiquetas: { etiquetaId: number }[];
+      } | null>,
       prisma.productoProveedor.findMany({
         where: { productoId },
         orderBy: { creadoEn: "asc" },
@@ -38,6 +44,7 @@ export default async function ProductoDetallePage({ params }: PageProps) {
               nroWhatsapp: true,
             },
           },
+          precios: { orderBy: { moq: "asc" } },
         },
       }),
       prisma.proveedor.findMany({ orderBy: { nombreEmpresa: "asc" } }),

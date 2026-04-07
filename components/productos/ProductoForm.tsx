@@ -29,6 +29,11 @@ interface ProductoConRelaciones {
   categoriaId: number | null;
   subcategoriaId: number | null;
   etiquetaIds?: number[];
+  requiereMedidas?: boolean;
+  ancho?: number | null;
+  largo?: number | null;
+  alto?: number | null;
+  espesor?: number | null;
 }
 
 interface ProductoFormProps {
@@ -80,10 +85,16 @@ export default function ProductoForm({
       categoriaId: producto?.categoriaId ?? null,
       subcategoriaId: producto?.subcategoriaId ?? null,
       etiquetaIds: producto?.etiquetaIds ?? [],
+      requiereMedidas: producto?.requiereMedidas ?? false,
+      ancho: producto?.ancho ?? null,
+      largo: producto?.largo ?? null,
+      alto: producto?.alto ?? null,
+      espesor: producto?.espesor ?? null,
     },
   });
 
   const categoriaSeleccionada = watch("categoriaId");
+  const requiereMedidas = watch("requiereMedidas");
 
   // Subcategorías filtradas por la categoría seleccionada
   const subcategoriasFiltradas = subcategorias.filter(
@@ -252,6 +263,61 @@ export default function ProductoForm({
         error={errors.caracteristicas?.message}
         {...register("caracteristicas")}
       />
+
+      {/* ─── Medidas ─────────────────────────────────────────── */}
+      <div className="border-t border-white/8 pt-4 flex flex-col gap-3">
+        {/* Checkbox */}
+        <label className="flex items-center gap-3 cursor-pointer group">
+          <div className="relative">
+            <input
+              type="checkbox"
+              className="sr-only"
+              {...register("requiereMedidas")}
+            />
+            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+              requiereMedidas
+                ? "bg-[#DE2910] border-[#DE2910]"
+                : "bg-white/5 border-white/20 group-hover:border-white/40"
+            }`}>
+              {requiereMedidas && (
+                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+            </div>
+          </div>
+          <div>
+            <span className="text-sm font-medium text-gray-300">Requiere Medidas</span>
+            <p className="text-xs text-gray-600">Habilita campos de dimensiones del producto</p>
+          </div>
+        </label>
+
+        {/* Campos de medidas — visibles solo si el check está activado */}
+        {requiereMedidas && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { name: "ancho" as const, label: "Ancho (cm)" },
+              { name: "largo" as const, label: "Largo (cm)" },
+              { name: "alto" as const, label: "Alto (cm)" },
+              { name: "espesor" as const, label: "Espesor (cm)" },
+            ].map(({ name, label }) => (
+              <div key={name} className="flex flex-col gap-1.5">
+                <label className="text-xs font-medium text-gray-400">{label}</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  placeholder="0.0"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#DE2910]/60 focus:border-[#DE2910]/60 hover:border-white/20"
+                  {...register(name, {
+                    setValueAs: (v) => (v === "" || v === null ? null : Number(v)),
+                  })}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Etiquetas */}
       <div className="flex flex-col gap-2">
