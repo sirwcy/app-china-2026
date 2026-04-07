@@ -9,7 +9,7 @@ const getSecret = () =>
 // Rutas que no requieren autenticación
 const PUBLIC_PATHS = ["/login", "/api/auth/login"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Dejar pasar rutas públicas
