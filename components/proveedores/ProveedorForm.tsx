@@ -1,13 +1,16 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useState } from "react";
 import { proveedorSchema, type ProveedorFormData } from "@/lib/validations/proveedor";
 import { crearProveedor, actualizarProveedor } from "@/lib/actions/proveedores";
+import { buscarCodigoPostal } from "@/lib/china-postal";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import OcrButton from "@/components/ui/OcrButton";
-import { useState } from "react";
+import PhoneInput from "@/components/ui/PhoneInput";
+import { MapPin } from "lucide-react";
 
 interface ProveedorConDatos {
   id: number;
@@ -19,6 +22,9 @@ interface ProveedorConDatos {
   direccion: string | null;
   lat: number | null;
   lng: number | null;
+  codigoPostal?: string | null;
+  provincia?: string | null;
+  ciudad?: string | null;
 }
 
 interface ProveedorFormProps {
@@ -35,6 +41,8 @@ export default function ProveedorForm({ proveedor, onSuccess, onCancel }: Provee
     register,
     handleSubmit,
     setValue,
+    watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<ProveedorFormData>({
     resolver: zodResolver(proveedorSchema),
@@ -47,8 +55,24 @@ export default function ProveedorForm({ proveedor, onSuccess, onCancel }: Provee
       direccion: proveedor?.direccion ?? "",
       lat: proveedor?.lat ?? null,
       lng: proveedor?.lng ?? null,
+      codigoPostal: proveedor?.codigoPostal ?? "",
+      provincia: proveedor?.provincia ?? "",
+      ciudad: proveedor?.ciudad ?? "",
     },
   });
+
+  // Auto-fill province/city when postal code is complete
+  const codigoPostal = watch("codigoPostal");
+  useEffect(() => {
+    const codigo = (codigoPostal ?? "").replace(/\D/g, "");
+    if (codigo.length === 6) {
+      const zona = buscarCodigoPostal(codigo);
+      if (zona) {
+        setValue("provincia", `${zona.provincia} (${zona.provinciaZh})`, { shouldDirty: true });
+        setValue("ciudad", zona.ciudad ? `${zona.ciudad} (${zona.ciudadZh ?? ""})` : "", { shouldDirty: true });
+      }
+    }
+  }, [codigoPostal, setValue]);
 
   async function onSubmit(data: ProveedorFormData) {
     setServerError(null);
@@ -66,6 +90,7 @@ export default function ProveedorForm({ proveedor, onSuccess, onCancel }: Provee
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+
       {/* Nombre empresa con OCR */}
       <div className="flex flex-col gap-1.5">
         <label className="text-sm font-medium text-gray-300">
@@ -117,17 +142,84 @@ export default function ProveedorForm({ proveedor, onSuccess, onCancel }: Provee
           error={errors.nroWechat?.message}
           {...register("nroWechat")}
         />
-        <Input
-          label="WhatsApp"
-          placeholder="+86 138 0000 0000"
-          error={errors.nroWhatsapp?.message}
-          {...register("nroWhatsapp")}
+
+        {/* WhatsApp con selector de código de país */}
+        <Controller
+          control={control}
+          name="nroWhatsapp"
+          render={({ field }) => (
+            <PhoneInput
+              label="WhatsApp"
+              value={field.value ?? ""}
+              onChange={field.onChange}
+              error={errors.nroWhatsapp?.message}
+            />
+          )}
         />
       </div>
 
-      {/* Ubicación */}
+      {/* ─── Ubicación ──────────────────────────────────────────── */}
       <div className="border-t border-white/8 pt-4 flex flex-col gap-4">
-        <p className="text-xs text-gray-500 uppercase tracking-wider">Ubicación</p>
+        <div className="flex items-center gap-2">
+          <MapPin size={14} className="text-[#FFDE00]" />
+          <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">Ubicación</p>
+        </div>
+
+        {/* Código postal + auto-fill */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-gray-300">
+            Código postal chino
+          </label>
+          <div className="flex gap-2 items-start">
+            <div className="flex flex-col gap-1 flex-1">
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={6}
+                placeholder="Ej: 510000"
+                className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500 transition-colors focus:outline-none focus:ring-2 focus:ring-[#DE2910]/60 focus:border-[#DE2910]/60 hover:border-white/20 font-mono tracking-widest"
+                {...register("codigoPostal", {
+                  onChange: (e) => {
+                    // Only allow digits
+                    e.target.value = e.target.value.replace(/\D/g, "").slice(0, 6);
+                  },
+                })}
+              />
+            </div>
+          </div>
+          <p className="text-xs text-gray-600">
+            6 dígitos — al completarlo se rellena provincia y ciudad automáticamente
+          </p>
+          {errors.codigoPostal && (
+            <p className="text-xs text-red-400">{errors.codigoPostal.message}</p>
+          )}
+        </div>
+
+        {/* Provincia y ciudad (auto-filled, editable) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-gray-300">Provincia</label>
+            <input
+              placeholder="Se completa con el código postal"
+              className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500 transition-colors focus:outline-none focus:ring-2 focus:ring-[#DE2910]/60 focus:border-[#DE2910]/60 hover:border-white/20"
+              {...register("provincia")}
+            />
+            {errors.provincia && (
+              <p className="text-xs text-red-400">{errors.provincia.message}</p>
+            )}
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-gray-300">Ciudad</label>
+            <input
+              placeholder="Se completa con el código postal"
+              className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500 transition-colors focus:outline-none focus:ring-2 focus:ring-[#DE2910]/60 focus:border-[#DE2910]/60 hover:border-white/20"
+              {...register("ciudad")}
+            />
+            {errors.ciudad && (
+              <p className="text-xs text-red-400">{errors.ciudad.message}</p>
+            )}
+          </div>
+        </div>
 
         <Input
           label="Dirección / Referencia"
@@ -164,7 +256,7 @@ export default function ProveedorForm({ proveedor, onSuccess, onCancel }: Provee
           />
         </div>
         <p className="text-xs text-gray-600 -mt-2">
-          💡 En Google Maps: clic derecho sobre el lugar → copiá las coordenadas (lat, lng)
+          En Google Maps: clic derecho → copiar coordenadas (lat, lng)
         </p>
       </div>
 

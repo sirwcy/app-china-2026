@@ -192,20 +192,16 @@ export default function CreatableSelect({
 
       {/* Dropdown */}
       {abierto && (
-        <div
-          className="absolute top-full left-0 z-50 mt-1 w-full min-w-[200px] rounded-xl shadow-2xl overflow-hidden"
-          style={{ background: "#0e1420", border: "1px solid rgba(255,255,255,0.1)" }}
-        >
+        <div className="absolute top-full left-0 z-50 mt-1 w-full min-w-[200px] rounded-xl shadow-2xl overflow-hidden bg-[#0e1420] border border-white/10">
           {/* Búsqueda */}
-          <div className="px-2 pt-2 pb-1 border-b border-white/8">
+          <div className="px-2 pt-2 pb-1 border-b border-white/10 bg-[#0e1420]">
             <input
               ref={inputRef}
               type="text"
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               placeholder="Buscar o escribir nuevo..."
-              className="w-full rounded-lg px-2.5 py-1.5 text-xs text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#DE2910]/50"
-              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)" }}
+              className="w-full rounded-lg px-2.5 py-1.5 text-xs text-gray-100 placeholder:text-gray-500 bg-white/[0.06] border border-white/[0.12] focus:outline-none focus:ring-1 focus:ring-[#DE2910]/50"
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();
@@ -220,7 +216,7 @@ export default function CreatableSelect({
           </div>
 
           {/* Lista */}
-          <ul className="max-h-48 overflow-y-auto py-1">
+          <ul className="max-h-48 overflow-y-auto py-1 bg-[#0e1420]">
             {filtrados.length === 0 && !mostrarCrear && (
               <li className="px-3 py-2 text-xs text-gray-400 text-center">
                 Sin resultados
@@ -230,16 +226,15 @@ export default function CreatableSelect({
             {filtrados.map((option) => {
               const editando = editandoId === option.id;
               return (
-                <li key={option.id}>
+                <li key={option.id} className="bg-[#0e1420]">
                   {editando ? (
-                    <div className="flex items-center gap-1 px-2 py-1.5" style={{ background: "rgba(255,255,255,0.04)" }}>
+                    <div className="flex items-center gap-1 px-2 py-1.5 bg-white/[0.04]">
                       <input
                         ref={editInputRef}
                         type="text"
                         value={editandoNombre}
                         onChange={(e) => setEditandoNombre(e.target.value)}
-                        className="flex-1 rounded px-2 py-1 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#DE2910]/50"
-                        style={{ background: "#0e1420", border: "1px solid rgba(255,255,255,0.2)" }}
+                        className="flex-1 rounded px-2 py-1 text-xs text-white bg-[#0e1420] border border-white/20 focus:outline-none focus:ring-1 focus:ring-[#DE2910]/50"
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
                             e.preventDefault();
@@ -275,10 +270,7 @@ export default function CreatableSelect({
                     <button
                       type="button"
                       onClick={() => handleSeleccionar(option.id)}
-                      className="w-full flex items-center justify-between px-3 py-2 text-sm text-gray-100 transition-colors text-left group"
-                      style={{ background: "transparent" }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.06)")}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                      className="w-full flex items-center justify-between px-3 py-2 text-sm text-gray-100 bg-transparent hover:bg-white/[0.06] transition-colors text-left group"
                     >
                       <span>{option.nombre}</span>
                       <span className="flex items-center gap-1 shrink-0">
@@ -303,12 +295,12 @@ export default function CreatableSelect({
 
             {/* Opción de crear */}
             {mostrarCrear && (
-              <li className="border-t border-white/8 mt-1 pt-1">
+              <li className="border-t border-white/10 mt-1 pt-1 bg-[#0e1420]">
                 <button
                   type="button"
                   onClick={handleCrear}
                   disabled={creando}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#FFDE00] hover:bg-[#FFDE00]/8 transition-colors text-left disabled:opacity-60"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#FFDE00] bg-transparent hover:bg-[#FFDE00]/[0.08] transition-colors text-left disabled:opacity-60"
                 >
                   {creando ? (
                     <Loader2 size={13} className="animate-spin shrink-0" />

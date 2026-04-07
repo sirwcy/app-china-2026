@@ -92,6 +92,9 @@ model Proveedor {
   direccion      String?
   lat            Float?
   lng            Float?
+  codigoPostal   String?
+  provincia      String?
+  ciudad         String?
   fotos          FotoProveedor[]
   catalogos      CatalogoProveedor[]
   creadoEn       DateTime           @default(now())

@@ -19,6 +19,9 @@ interface Proveedor {
   direccion: string | null;
   lat: number | null;
   lng: number | null;
+  codigoPostal: string | null;
+  provincia: string | null;
+  ciudad: string | null;
 }
 
 interface ProductoVinculado {
@@ -88,6 +91,23 @@ export default function ProveedorDetalleCliente({ proveedor, productos, catalogo
             <div>
               <p className="text-[10px] text-gray-500 uppercase tracking-wider">Licencia comercial</p>
               <p className="text-sm text-gray-200 font-mono">{proveedorActual.nroLicencia}</p>
+            </div>
+          </div>
+        )}
+        {(proveedorActual.codigoPostal || proveedorActual.provincia || proveedorActual.ciudad) && (
+          <div className="flex items-center gap-2 p-3 rounded-xl bg-white/4 border border-white/8">
+            <MapPin size={15} className="text-[#FFDE00] shrink-0" />
+            <div className="min-w-0">
+              <p className="text-[10px] text-gray-500 uppercase tracking-wider">Ubicación postal</p>
+              {proveedorActual.codigoPostal && (
+                <p className="text-xs text-gray-500 font-mono">{proveedorActual.codigoPostal}</p>
+              )}
+              {proveedorActual.provincia && (
+                <p className="text-sm text-gray-200 truncate">{proveedorActual.provincia}</p>
+              )}
+              {proveedorActual.ciudad && (
+                <p className="text-xs text-gray-400 truncate">{proveedorActual.ciudad}</p>
+              )}
             </div>
           </div>
         )}
