@@ -390,6 +390,7 @@ export default function ProductosCliente({
         title={productoEditar ? "Editar producto" : "Nuevo producto"}
       >
         <ProductoForm
+          key={productoEditar?.id ?? "nuevo"}
           producto={productoEditar ?? undefined}
           categorias={categorias}
           subcategorias={subcategorias}
