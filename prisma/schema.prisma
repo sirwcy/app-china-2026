@@ -129,3 +129,18 @@ model FotoProveedor {
 
   @@map("fotos_proveedor")
 }
+
+model Usuario {
+  id             Int      @id @default(autoincrement())
+  nombreCorto    String   @unique
+  nombreCompleto String
+  empresa        String?
+  nroWhatsapp    String?
+  nroWechat      String?
+  passwordHash   String
+  rol            String   @default("LECTOR")
+  creadoEn       DateTime @default(now())
+  actualizadoEn  DateTime @updatedAt
+
+  @@map("usuarios")
+}

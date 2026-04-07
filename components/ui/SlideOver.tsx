@@ -29,17 +29,13 @@ export default function SlideOver({
     return () => document.removeEventListener("keydown", handler);
   }, [open, onClose]);
 
-  // Bloquear scroll del body
+  // Bloquear scroll del body cuando está abierto
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [open]);
 
-  const widths = {
-    sm: "max-w-sm",
-    md: "max-w-md",
-    lg: "max-w-lg",
-  };
+  const widths = { sm: "max-w-sm", md: "max-w-md", lg: "max-w-lg" };
 
   return (
     <>
@@ -53,18 +49,21 @@ export default function SlideOver({
         aria-hidden="true"
       />
 
-      {/* Panel — desktop: slide desde derecha / mobile: slide desde abajo */}
+      {/* Panel */}
       <div
         role="dialog"
         aria-modal="true"
         aria-label={title}
+        onClick={(e) => e.stopPropagation()}
         className={cn(
           "fixed z-50 bg-[#111827] border-white/10 transition-transform duration-300 ease-in-out",
-          // Desktop: panel lateral derecho
+          // Cuando está cerrado no intercepta eventos del mouse
+          !open && "pointer-events-none",
+          // Desktop: slide desde derecha
           "md:inset-y-0 md:right-0 md:w-full md:border-l",
           widths[width],
           open ? "md:translate-x-0" : "md:translate-x-full",
-          // Mobile: panel inferior
+          // Mobile: slide desde abajo
           "inset-x-0 bottom-0 rounded-t-2xl border-t max-h-[92dvh] overflow-y-auto",
           open ? "translate-y-0" : "translate-y-full md:translate-y-0"
         )}
@@ -75,9 +74,10 @@ export default function SlideOver({
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 sticky top-0 bg-[#111827] z-10">
           <h2 className="text-base font-semibold text-white">{title}</h2>
           <button
+            type="button"
             onClick={onClose}
             className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
             aria-label="Cerrar"
