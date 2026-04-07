@@ -1,8 +1,9 @@
 "use client";
 
-import { Pencil, Trash2, MessageCircle, Phone, ShieldCheck, Package, MapPin } from "lucide-react";
+import { Pencil, Trash2, MessageCircle, Phone, ShieldCheck, Package, MapPin, ExternalLink } from "lucide-react";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
+import Link from "next/link";
 import { useState } from "react";
 import { eliminarProveedor } from "@/lib/actions/proveedores";
 
@@ -95,6 +96,13 @@ export default function ProveedorCard({ proveedor, onEditar }: ProveedorCardProp
 
       {/* Acciones */}
       <div className="flex items-center gap-2 pt-1 border-t border-white/6">
+        <Link
+          href={`/proveedores/${proveedor.id}`}
+          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-gray-400 hover:text-white hover:bg-white/8 transition-colors"
+        >
+          <ExternalLink size={12} />
+          Ver detalle
+        </Link>
         <Button
           variant="ghost"
           size="sm"
@@ -104,7 +112,6 @@ export default function ProveedorCard({ proveedor, onEditar }: ProveedorCardProp
           <Pencil size={13} />
           Editar
         </Button>
-
         <Button
           variant={confirmando ? "danger" : "ghost"}
           size="sm"
@@ -113,7 +120,7 @@ export default function ProveedorCard({ proveedor, onEditar }: ProveedorCardProp
           loading={eliminando}
         >
           <Trash2 size={13} />
-          {confirmando ? "¿Confirmar?" : "Eliminar"}
+          {confirmando ? "¿Eliminar?" : "Borrar"}
         </Button>
       </div>
     </article>

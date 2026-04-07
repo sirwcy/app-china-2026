@@ -77,6 +77,7 @@ model Producto {
   subcategoria    Subcategoria?      @relation(fields: [subcategoriaId], references: [id])
   proveedores     ProductoProveedor[]
   etiquetas       ProductoEtiqueta[]
+  archivos        ArchivoProducto[]
 
   @@map("productos")
 }
@@ -92,6 +93,7 @@ model Proveedor {
   lat            Float?
   lng            Float?
   fotos          FotoProveedor[]
+  catalogos      CatalogoProveedor[]
   creadoEn       DateTime           @default(now())
   actualizadoEn  DateTime           @updatedAt
   productos      ProductoProveedor[]
@@ -128,6 +130,32 @@ model FotoProveedor {
   proveedor Proveedor @relation(fields: [proveedorId], references: [id], onDelete: Cascade)
 
   @@map("fotos_proveedor")
+}
+
+model ArchivoProducto {
+  id         Int      @id @default(autoincrement())
+  productoId Int
+  nombre     String
+  url        String
+  tipo       String
+  tamano     Int?
+  creadoEn   DateTime @default(now())
+  producto   Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+
+  @@map("archivos_producto")
+}
+
+model CatalogoProveedor {
+  id          Int       @id @default(autoincrement())
+  proveedorId Int
+  nombre      String
+  url         String
+  tipo        String
+  tamano      Int?
+  creadoEn    DateTime  @default(now())
+  proveedor   Proveedor @relation(fields: [proveedorId], references: [id], onDelete: Cascade)
+
+  @@map("catalogo_proveedor")
 }
 
 model Usuario {
