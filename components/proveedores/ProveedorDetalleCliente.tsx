@@ -22,6 +22,11 @@ interface Proveedor {
   codigoPostal: string | null;
   provincia: string | null;
   ciudad: string | null;
+  distrito: string | null;
+  distanciaGuangzhou: number | null;
+  tiempoVueloGuangzhou: string | null;
+  distanciaYiwu: number | null;
+  tiempoVueloYiwu: string | null;
 }
 
 interface ProductoVinculado {
@@ -107,6 +112,29 @@ export default function ProveedorDetalleCliente({ proveedor, productos, catalogo
               )}
               {proveedorActual.ciudad && (
                 <p className="text-xs text-gray-400 truncate">{proveedorActual.ciudad}</p>
+              )}
+              {proveedorActual.distrito && (
+                <p className="text-xs text-gray-500 truncate">Distrito: {proveedorActual.distrito}</p>
+              )}
+            </div>
+          </div>
+        )}
+        {(proveedorActual.distanciaGuangzhou || proveedorActual.distanciaYiwu) && (
+          <div className="flex items-start gap-2 p-3 rounded-xl bg-white/4 border border-white/8 col-span-full sm:col-span-1">
+            <MapPin size={15} className="text-blue-400 shrink-0 mt-0.5" />
+            <div className="min-w-0 flex flex-col gap-1">
+              <p className="text-[10px] text-gray-500 uppercase tracking-wider">Distancias</p>
+              {proveedorActual.distanciaGuangzhou && (
+                <p className="text-xs text-gray-300">
+                  🏙️ Guangzhou: <span className="text-white font-medium">{proveedorActual.distanciaGuangzhou.toLocaleString()} km</span>
+                  {proveedorActual.tiempoVueloGuangzhou && <span className="text-gray-500"> · ✈️ {proveedorActual.tiempoVueloGuangzhou}</span>}
+                </p>
+              )}
+              {proveedorActual.distanciaYiwu && (
+                <p className="text-xs text-gray-300">
+                  🏙️ Yiwu: <span className="text-white font-medium">{proveedorActual.distanciaYiwu.toLocaleString()} km</span>
+                  {proveedorActual.tiempoVueloYiwu && <span className="text-gray-500"> · ✈️ {proveedorActual.tiempoVueloYiwu}</span>}
+                </p>
               )}
             </div>
           </div>

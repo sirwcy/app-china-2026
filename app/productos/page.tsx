@@ -13,6 +13,7 @@ export default async function ProductosPage() {
         categoria: true,
         subcategoria: true,
         etiquetas: { include: { etiqueta: true } },
+        proveedores: { include: { proveedor: { select: { id: true, nombreEmpresa: true } } } },
         _count: { select: { proveedores: true } },
       },
     }),

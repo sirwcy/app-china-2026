@@ -5,12 +5,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { proveedorSchema, type ProveedorFormData } from "@/lib/validations/proveedor";
 import { crearProveedor, actualizarProveedor } from "@/lib/actions/proveedores";
-import { buscarCodigoPostal } from "@/lib/china-postal";
+import { buscarCodigoPostal, getCoordsParaZona } from "@/lib/china-postal";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import OcrButton from "@/components/ui/OcrButton";
 import PhoneInput from "@/components/ui/PhoneInput";
-import { MapPin } from "lucide-react";
+import { MapPin, Map } from "lucide-react";
 
 interface ProveedorConDatos {
   id: number;
@@ -25,12 +25,54 @@ interface ProveedorConDatos {
   codigoPostal?: string | null;
   provincia?: string | null;
   ciudad?: string | null;
+  distrito?: string | null;
+  distanciaGuangzhou?: number | null;
+  tiempoVueloGuangzhou?: string | null;
+  distanciaYiwu?: number | null;
+  tiempoVueloYiwu?: string | null;
 }
 
 interface ProveedorFormProps {
   proveedor?: ProveedorConDatos;
   onSuccess: () => void;
   onCancel: () => void;
+}
+
+function MapaUbicacion({ lat, lng, ciudad, provincia }: { lat: number | null | undefined; lng: number | null | undefined; ciudad?: string; provincia?: string }) {
+  if (!lat || !lng) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-2 h-40 rounded-xl border border-white/10 bg-white/[0.02] text-gray-600">
+        <Map size={28} />
+        <p className="text-xs text-center">Complete el código postal para<br />ver la ubicación aproximada</p>
+      </div>
+    );
+  }
+  const delta = 0.8;
+  const bbox = `${lng - delta},${lat - delta},${lng + delta},${lat + delta}`;
+  const url = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
+  const label = [ciudad, provincia].filter(Boolean).join(" — ");
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center gap-1.5">
+        <Map size={13} className="text-[#FFDE00]" />
+        <span className="text-xs text-gray-400">Referencia aproximada{label ? `: ${label}` : ""}</span>
+      </div>
+      <iframe
+        src={url}
+        className="w-full h-44 rounded-xl border border-white/10"
+        title="Mapa de ubicación"
+        loading="lazy"
+      />
+      <a
+        href={`https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=10/${lat}/${lng}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-[10px] text-gray-600 hover:text-gray-400 text-right transition-colors"
+      >
+        Ver en OpenStreetMap ↗
+      </a>
+    </div>
+  );
 }
 
 export default function ProveedorForm({ proveedor, onSuccess, onCancel }: ProveedorFormProps) {
@@ -58,11 +100,20 @@ export default function ProveedorForm({ proveedor, onSuccess, onCancel }: Provee
       codigoPostal: proveedor?.codigoPostal ?? "",
       provincia: proveedor?.provincia ?? "",
       ciudad: proveedor?.ciudad ?? "",
+      distrito: proveedor?.distrito ?? "",
+      distanciaGuangzhou: proveedor?.distanciaGuangzhou ?? null as number | null,
+      tiempoVueloGuangzhou: proveedor?.tiempoVueloGuangzhou ?? "",
+      distanciaYiwu: proveedor?.distanciaYiwu ?? null as number | null,
+      tiempoVueloYiwu: proveedor?.tiempoVueloYiwu ?? "",
     },
   });
 
-  // Auto-fill province/city when postal code is complete
   const codigoPostal = watch("codigoPostal");
+  const latActual = watch("lat");
+  const lngActual = watch("lng");
+  const ciudadActual = watch("ciudad");
+  const provinciaActual = watch("provincia");
+
   useEffect(() => {
     const codigo = (codigoPostal ?? "").replace(/\D/g, "");
     if (codigo.length === 6) {
@@ -70,6 +121,11 @@ export default function ProveedorForm({ proveedor, onSuccess, onCancel }: Provee
       if (zona) {
         setValue("provincia", `${zona.provincia} (${zona.provinciaZh})`, { shouldDirty: true });
         setValue("ciudad", zona.ciudad ? `${zona.ciudad} (${zona.ciudadZh ?? ""})` : "", { shouldDirty: true });
+        const coords = getCoordsParaZona(zona);
+        if (coords) {
+          setValue("lat", coords.lat, { shouldDirty: true });
+          setValue("lng", coords.lng, { shouldDirty: true });
+        }
       }
     }
   }, [codigoPostal, setValue]);
@@ -142,8 +198,6 @@ export default function ProveedorForm({ proveedor, onSuccess, onCancel }: Provee
           error={errors.nroWechat?.message}
           {...register("nroWechat")}
         />
-
-        {/* WhatsApp con selector de código de país */}
         <Controller
           control={control}
           name="nroWhatsapp"
@@ -165,61 +219,61 @@ export default function ProveedorForm({ proveedor, onSuccess, onCancel }: Provee
           <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">Ubicación</p>
         </div>
 
-        {/* Código postal + auto-fill */}
+        {/* Código postal */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-gray-300">
-            Código postal chino
-          </label>
-          <div className="flex gap-2 items-start">
-            <div className="flex flex-col gap-1 flex-1">
-              <input
-                type="text"
-                inputMode="numeric"
-                maxLength={6}
-                placeholder="Ej: 510000"
-                className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500 transition-colors focus:outline-none focus:ring-2 focus:ring-[#DE2910]/60 focus:border-[#DE2910]/60 hover:border-white/20 font-mono tracking-widest"
-                {...register("codigoPostal", {
-                  onChange: (e) => {
-                    // Only allow digits
-                    e.target.value = e.target.value.replace(/\D/g, "").slice(0, 6);
-                  },
-                })}
-              />
-            </div>
-          </div>
+          <label className="text-sm font-medium text-gray-300">Código postal chino</label>
+          <input
+            type="text"
+            inputMode="numeric"
+            maxLength={6}
+            placeholder="Ej: 510000"
+            className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500 transition-colors focus:outline-none focus:ring-2 focus:ring-[#DE2910]/60 focus:border-[#DE2910]/60 hover:border-white/20 font-mono tracking-widest"
+            {...register("codigoPostal", {
+              onChange: (e) => {
+                e.target.value = e.target.value.replace(/\D/g, "").slice(0, 6);
+              },
+            })}
+          />
           <p className="text-xs text-gray-600">
-            6 dígitos — al completarlo se rellena provincia y ciudad automáticamente
+            6 dígitos — al completarlo se rellena provincia, ciudad y mapa automáticamente
           </p>
-          {errors.codigoPostal && (
-            <p className="text-xs text-red-400">{errors.codigoPostal.message}</p>
-          )}
         </div>
 
-        {/* Provincia y ciudad (auto-filled, editable) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* Provincia, Ciudad, Distrito */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-gray-300">Provincia</label>
             <input
-              placeholder="Se completa con el código postal"
+              placeholder="Auto-relleno"
               className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500 transition-colors focus:outline-none focus:ring-2 focus:ring-[#DE2910]/60 focus:border-[#DE2910]/60 hover:border-white/20"
               {...register("provincia")}
             />
-            {errors.provincia && (
-              <p className="text-xs text-red-400">{errors.provincia.message}</p>
-            )}
           </div>
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-gray-300">Ciudad</label>
             <input
-              placeholder="Se completa con el código postal"
+              placeholder="Auto-relleno"
               className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500 transition-colors focus:outline-none focus:ring-2 focus:ring-[#DE2910]/60 focus:border-[#DE2910]/60 hover:border-white/20"
               {...register("ciudad")}
             />
-            {errors.ciudad && (
-              <p className="text-xs text-red-400">{errors.ciudad.message}</p>
-            )}
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-gray-300">Distrito</label>
+            <input
+              placeholder="Ej: Tianhe, Baiyun..."
+              className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500 transition-colors focus:outline-none focus:ring-2 focus:ring-[#DE2910]/60 focus:border-[#DE2910]/60 hover:border-white/20"
+              {...register("distrito")}
+            />
           </div>
         </div>
+
+        {/* Mapa */}
+        <MapaUbicacion
+          lat={latActual}
+          lng={lngActual}
+          ciudad={ciudadActual?.split(" (")[0]}
+          provincia={provinciaActual?.split(" (")[0]}
+        />
 
         <Input
           label="Dirección / Referencia"
@@ -228,36 +282,75 @@ export default function ProveedorForm({ proveedor, onSuccess, onCancel }: Provee
           hint="Referencia textual para identificar el lugar"
           {...register("direccion")}
         />
+      </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Input
-            label="Latitud"
-            type="number"
-            step="any"
-            placeholder="Ej: 29.3236"
-            error={errors.lat?.message}
-            hint="-90 a 90"
-            {...register("lat", {
-              valueAsNumber: true,
-              setValueAs: (v) => (v === "" ? null : Number(v)),
-            })}
-          />
-          <Input
-            label="Longitud"
-            type="number"
-            step="any"
-            placeholder="Ej: 120.0753"
-            error={errors.lng?.message}
-            hint="-180 a 180"
-            {...register("lng", {
-              valueAsNumber: true,
-              setValueAs: (v) => (v === "" ? null : Number(v)),
-            })}
-          />
-        </div>
-        <p className="text-xs text-gray-600 -mt-2">
-          En Google Maps: clic derecho → copiar coordenadas (lat, lng)
+      {/* ─── Distancias de referencia ──────────────────────────── */}
+      <div className="border-t border-white/8 pt-4 flex flex-col gap-4">
+        <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">
+          Distancias de referencia
         </p>
+
+        {/* Guangzhou */}
+        <div className="flex flex-col gap-2">
+          <p className="text-sm font-medium text-gray-300 flex items-center gap-1.5">
+            <span className="text-base">🏙️</span> Desde Guangzhou
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs text-gray-500">Distancia (km)</label>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                placeholder="Ej: 1200"
+                className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500 transition-colors focus:outline-none focus:ring-2 focus:ring-[#DE2910]/60 focus:border-[#DE2910]/60 hover:border-white/20"
+                {...register("distanciaGuangzhou", {
+                  setValueAs: (v) => (v === "" || v === null ? null : Number(v)),
+                })}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs text-gray-500">Tiempo vuelo</label>
+              <input
+                type="text"
+                placeholder="Ej: 2h 30min"
+                className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500 transition-colors focus:outline-none focus:ring-2 focus:ring-[#DE2910]/60 focus:border-[#DE2910]/60 hover:border-white/20"
+                {...register("tiempoVueloGuangzhou")}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Yiwu */}
+        <div className="flex flex-col gap-2">
+          <p className="text-sm font-medium text-gray-300 flex items-center gap-1.5">
+            <span className="text-base">🏙️</span> Desde Yiwu
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs text-gray-500">Distancia (km)</label>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                placeholder="Ej: 800"
+                className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500 transition-colors focus:outline-none focus:ring-2 focus:ring-[#DE2910]/60 focus:border-[#DE2910]/60 hover:border-white/20"
+                {...register("distanciaYiwu", {
+                  setValueAs: (v) => (v === "" || v === null ? null : Number(v)),
+                })}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs text-gray-500">Tiempo vuelo</label>
+              <input
+                type="text"
+                placeholder="Ej: 1h 45min"
+                className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500 transition-colors focus:outline-none focus:ring-2 focus:ring-[#DE2910]/60 focus:border-[#DE2910]/60 hover:border-white/20"
+                {...register("tiempoVueloYiwu")}
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       {serverError && (

@@ -308,7 +308,8 @@ export default function CreatableSelect({
                     <Plus size={13} className="shrink-0" />
                   )}
                   <span>
-                    Crear <strong>&ldquo;{textoExacto}&rdquo;</strong>
+                    Crear{" "}
+                    <span className="text-white font-semibold">&ldquo;{textoExacto}&rdquo;</span>
                   </span>
                 </button>
               </li>

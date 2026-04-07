@@ -18,6 +18,11 @@ export const proveedorSchema = z.object({
   codigoPostal: z.string().max(6).optional().nullable().or(z.literal("")),
   provincia: z.string().max(100).optional().nullable().or(z.literal("")),
   ciudad: z.string().max(100).optional().nullable().or(z.literal("")),
+  distrito: z.string().max(100).optional().nullable().or(z.literal("")),
+  distanciaGuangzhou: z.number().optional().nullable(),
+  tiempoVueloGuangzhou: z.string().max(50).optional().nullable().or(z.literal("")),
+  distanciaYiwu: z.number().optional().nullable(),
+  tiempoVueloYiwu: z.string().max(50).optional().nullable().or(z.literal("")),
 });
 
 export type ProveedorFormData = z.infer<typeof proveedorSchema>;

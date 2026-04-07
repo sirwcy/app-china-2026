@@ -92,9 +92,14 @@ model Proveedor {
   direccion      String?
   lat            Float?
   lng            Float?
-  codigoPostal   String?
-  provincia      String?
-  ciudad         String?
+  codigoPostal          String?
+  provincia             String?
+  ciudad                String?
+  distrito              String?
+  distanciaGuangzhou    Float?
+  tiempoVueloGuangzhou  String?
+  distanciaYiwu         Float?
+  tiempoVueloYiwu       String?
   fotos          FotoProveedor[]
   catalogos      CatalogoProveedor[]
   creadoEn       DateTime           @default(now())
