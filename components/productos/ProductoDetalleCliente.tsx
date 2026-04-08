@@ -1,17 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Pencil, Trash2, ArrowLeft, DollarSign, Package2, StickyNote } from "lucide-react";
+import { Plus, Pencil, Trash2, ArrowLeft, DollarSign, Package2, StickyNote, Paperclip } from "lucide-react";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import SlideOver from "@/components/ui/SlideOver";
 import RelacionForm from "@/components/relaciones/RelacionForm";
 import ProductoForm from "@/components/productos/ProductoForm";
+import ProveedorForm from "@/components/proveedores/ProveedorForm";
 import { desvincularProveedor } from "@/lib/actions/relaciones";
 import type { SelectOption } from "@/components/ui/CreatableSelect";
 import ArchivoUploader, { type Archivo } from "@/components/archivos/ArchivoUploader";
-import { Paperclip } from "lucide-react";
 
 interface SubcategoriaOption extends SelectOption {
   categoriaId: number;
@@ -90,7 +90,9 @@ export default function ProductoDetalleCliente({
 }: ProductoDetalleClienteProps) {
   const [panelRelacion, setPanelRelacion] = useState(false);
   const [panelEditar, setPanelEditar] = useState(false);
+  const [panelNuevoProveedor, setPanelNuevoProveedor] = useState(false);
   const [relacionEditar, setRelacionEditar] = useState<Relacion | null>(null);
+  const [proveedores, setProveedores] = useState<Proveedor[]>(todosLosProveedores);
 
   const proveedoresVinculadosIds = relaciones.map((r) => r.proveedorId);
 
@@ -107,6 +109,11 @@ export default function ProductoDetalleCliente({
   function cerrarPanelRelacion() {
     setPanelRelacion(false);
     setRelacionEditar(null);
+  }
+
+  function handleProveedorCreado(nuevo: Proveedor) {
+    setProveedores((prev) => [...prev, nuevo].sort((a, b) => a.nombreEmpresa.localeCompare(b.nombreEmpresa)));
+    setPanelNuevoProveedor(false);
   }
 
   return (
@@ -171,7 +178,7 @@ export default function ProductoDetalleCliente({
             {producto.espesor != null && (
               <div className="text-center">
                 <p className="text-[10px] text-gray-500 uppercase">Espesor</p>
-                <p className="text-sm font-semibold text-gray-200">{producto.espesor} cm</p>
+                <p className="text-sm font-semibold text-gray-200">{producto.espesor} mm</p>
               </div>
             )}
           </div>
@@ -241,11 +248,12 @@ export default function ProductoDetalleCliente({
         <RelacionForm
           key={relacionEditar?.id ?? "nueva"}
           productoId={producto.id}
-          proveedores={todosLosProveedores}
+          proveedores={proveedores}
           proveedoresVinculadosIds={proveedoresVinculadosIds}
           relacion={relacionEditar ?? undefined}
           onSuccess={cerrarPanelRelacion}
           onCancel={cerrarPanelRelacion}
+          onCrearProveedor={() => setPanelNuevoProveedor(true)}
         />
       </SlideOver>
 
@@ -263,6 +271,21 @@ export default function ProductoDetalleCliente({
           etiquetas={etiquetas}
           onSuccess={() => setPanelEditar(false)}
           onCancel={() => setPanelEditar(false)}
+        />
+      </SlideOver>
+
+      {/* Panel: crear nuevo proveedor desde ficha producto */}
+      <SlideOver
+        open={panelNuevoProveedor}
+        onClose={() => setPanelNuevoProveedor(false)}
+        title="Crear nuevo proveedor"
+      >
+        <ProveedorForm
+          onSuccess={(nuevo) => {
+            if (nuevo) handleProveedorCreado(nuevo);
+            else setPanelNuevoProveedor(false);
+          }}
+          onCancel={() => setPanelNuevoProveedor(false)}
         />
       </SlideOver>
     </>

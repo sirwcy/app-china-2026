@@ -223,7 +223,7 @@ export default function ProveedorDetalleCliente({ proveedor, productos, catalogo
       <SlideOver open={panelEditar} onClose={() => setPanelEditar(false)} title="Editar proveedor">
         <ProveedorForm
           proveedor={proveedorActual}
-          onSuccess={() => setPanelEditar(false)}
+          onSuccess={() => { setPanelEditar(false); }}
           onCancel={() => setPanelEditar(false)}
         />
       </SlideOver>

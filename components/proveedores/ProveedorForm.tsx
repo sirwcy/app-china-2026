@@ -32,9 +32,15 @@ interface ProveedorConDatos {
   tiempoVueloYiwu?: string | null;
 }
 
+interface NuevoProveedor {
+  id: number;
+  nombreEmpresa: string;
+  nombreContacto: string;
+}
+
 interface ProveedorFormProps {
   proveedor?: ProveedorConDatos;
-  onSuccess: () => void;
+  onSuccess: (nuevo?: NuevoProveedor) => void;
   onCancel: () => void;
 }
 
@@ -143,10 +149,11 @@ export default function ProveedorForm({ proveedor, onSuccess, onCancel }: Provee
     try {
       if (esEdicion) {
         await actualizarProveedor(proveedor.id, data);
+        onSuccess();
       } else {
-        await crearProveedor(data);
+        const nuevo = await crearProveedor(data);
+        onSuccess({ id: nuevo.id, nombreEmpresa: nuevo.nombreEmpresa, nombreContacto: nuevo.nombreContacto });
       }
-      onSuccess();
     } catch {
       setServerError("Ocurrió un error. Intenta nuevamente.");
     }

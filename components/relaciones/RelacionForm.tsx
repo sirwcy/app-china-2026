@@ -37,6 +37,7 @@ interface RelacionFormProps {
   relacion?: RelacionExistente;
   onSuccess: () => void;
   onCancel: () => void;
+  onCrearProveedor?: () => void;
 }
 
 export default function RelacionForm({
@@ -46,6 +47,7 @@ export default function RelacionForm({
   relacion,
   onSuccess,
   onCancel,
+  onCrearProveedor,
 }: RelacionFormProps) {
   const [serverError, setServerError] = useState<string | null>(null);
   const esEdicion = !!relacion;
@@ -94,9 +96,21 @@ export default function RelacionForm({
 
       {/* Proveedor */}
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-gray-300">
-          Proveedor <span className="text-[#DE2910] ml-1">*</span>
-        </label>
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium text-gray-300">
+            Proveedor <span className="text-[#DE2910] ml-1">*</span>
+          </label>
+          {!esEdicion && onCrearProveedor && (
+            <button
+              type="button"
+              onClick={onCrearProveedor}
+              className="text-xs text-[#FFDE00] hover:text-[#FFDE00]/80 transition-colors flex items-center gap-1"
+            >
+              <Plus size={11} />
+              Nuevo proveedor
+            </button>
+          )}
+        </div>
         <select
           {...register("proveedorId", { valueAsNumber: true })}
           disabled={esEdicion}

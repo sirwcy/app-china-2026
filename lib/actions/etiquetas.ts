@@ -4,8 +4,9 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
 export async function crearEtiqueta(nombre: string, color?: string) {
+  const nombreCapitalizado = nombre.charAt(0).toUpperCase() + nombre.slice(1);
   const etiqueta = await prisma.etiqueta.create({
-    data: { nombre, color: color ?? "#6b7280" },
+    data: { nombre: nombreCapitalizado, color: color ?? "#6b7280" },
   });
   return { id: etiqueta.id, nombre: etiqueta.nombre, color: etiqueta.color };
 }

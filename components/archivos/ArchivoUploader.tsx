@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback } from "react";
 import {
   ImageIcon, FileText, FileSpreadsheet, Mic, Video,
-  Upload, Trash2, Loader2, StopCircle, Camera, ExternalLink,
+  Upload, Trash2, Loader2, StopCircle, Camera, ExternalLink, FileType,
 } from "lucide-react";
 import Button from "@/components/ui/Button";
 
@@ -28,6 +28,7 @@ const TIPO_ICON: Record<string, React.ElementType> = {
   imagen: ImageIcon,
   pdf: FileText,
   excel: FileSpreadsheet,
+  word: FileType,
   audio: Mic,
   video: Video,
 };
@@ -36,6 +37,7 @@ const TIPO_COLOR: Record<string, string> = {
   imagen: "text-blue-400",
   pdf: "text-red-400",
   excel: "text-green-400",
+  word: "text-blue-300",
   audio: "text-purple-400",
   video: "text-orange-400",
 };
@@ -176,8 +178,8 @@ export default function ArchivoUploader({
   }
 
   const accept = soloDocumentos
-    ? "image/*,application/pdf,.xlsx,.xls,.csv"
-    : "image/*,application/pdf,.xlsx,.xls,.csv,audio/*,video/*";
+    ? "image/*,application/pdf,.xlsx,.xls,.csv,.doc,.docx"
+    : "image/*,application/pdf,.xlsx,.xls,.csv,.doc,.docx,audio/*,video/*";
 
   return (
     <div className="flex flex-col gap-4">
@@ -199,8 +201,8 @@ export default function ArchivoUploader({
         </p>
         <p className="text-xs text-gray-700 mt-0.5">
           {soloDocumentos
-            ? "Imágenes, PDF, Excel"
-            : "Imágenes, PDF, Excel, Audio, Video"}
+            ? "Imágenes, PDF, Excel, Word"
+            : "Imágenes, PDF, Excel, Word, Audio, Video"}
         </p>
         <input
           type="file"

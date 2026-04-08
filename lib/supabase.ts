@@ -23,6 +23,13 @@ export function detectTipo(mimeType: string, filename: string): string {
     filename.endsWith(".csv")
   )
     return "excel";
+  if (
+    mimeType.includes("word") ||
+    mimeType === "application/msword" ||
+    filename.endsWith(".doc") ||
+    filename.endsWith(".docx")
+  )
+    return "word";
   if (mimeType.startsWith("audio/")) return "audio";
   if (mimeType.startsWith("video/")) return "video";
   return "otro";

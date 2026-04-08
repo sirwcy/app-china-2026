@@ -299,7 +299,7 @@ export default function ProductoForm({
               { name: "ancho" as const, label: "Ancho (cm)" },
               { name: "largo" as const, label: "Largo (cm)" },
               { name: "alto" as const, label: "Alto (cm)" },
-              { name: "espesor" as const, label: "Espesor (cm)" },
+              { name: "espesor" as const, label: "Espesor (mm)" },
             ].map(({ name, label }) => (
               <div key={name} className="flex flex-col gap-1.5">
                 <label className="text-xs font-medium text-gray-400">{label}</label>

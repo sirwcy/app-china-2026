@@ -234,7 +234,7 @@ export default function LoginPage() {
 
           <div className="mt-6 text-center">
             <span className="text-[10px] text-white/18 tracking-widest uppercase">
-              中华人民共和国 · República Popular China
+              WILLO SYSTEM
             </span>
           </div>
         </div>
