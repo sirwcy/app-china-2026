@@ -62,21 +62,25 @@ function MapaUbicacion({ lat, lng, ciudad, provincia }: { lat: number | null | u
         <Map size={13} className="text-[#FFDE00]" />
         <span className="text-xs text-gray-400">Referencia aproximada{label ? `: ${label}` : ""}</span>
       </div>
-      <iframe
-        src={url}
-        className="w-full h-44 rounded-xl border border-white/10"
-        title="Mapa de ubicación"
-        loading="lazy"
-        referrerPolicy="no-referrer-when-downgrade"
-      />
-      <a
-        href={urlExterno}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-[10px] text-gray-600 hover:text-gray-400 text-right transition-colors"
-      >
-        Ver en Google Maps ↗
-      </a>
+      <div className="relative rounded-xl overflow-hidden border border-white/10">
+        <iframe
+          src={url}
+          className="w-full h-56"
+          title="Mapa de ubicación"
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+          allowFullScreen
+        />
+        <a
+          href={urlExterno}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="absolute bottom-2 right-2 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#07090f]/80 backdrop-blur-sm border border-white/15 text-xs text-gray-300 hover:text-white hover:border-white/30 transition-all"
+        >
+          <Map size={11} />
+          Abrir en Google Maps ↗
+        </a>
+      </div>
     </div>
   );
 }
@@ -122,24 +126,48 @@ export default function ProveedorForm({ proveedor, onSuccess, onCancel }: Provee
 
   useEffect(() => {
     const codigo = (codigoPostal ?? "").replace(/\D/g, "");
-    if (codigo.length === 6) {
-      const zona = buscarCodigoPostal(codigo);
-      if (zona) {
-        setValue("provincia", `${zona.provincia} (${zona.provinciaZh})`, { shouldDirty: true });
-        setValue("ciudad", zona.ciudad ? `${zona.ciudad}${zona.ciudadZh ? ` (${zona.ciudadZh})` : ""}` : "", { shouldDirty: true });
-        if (zona.distrito) {
-          setValue("distrito", zona.distrito, { shouldDirty: true });
-        }
-        const coords = getCoordsParaZona(zona);
-        if (coords) {
-          setValue("lat", coords.lat, { shouldDirty: true });
-          setValue("lng", coords.lng, { shouldDirty: true });
-          // Auto-calcular distancias a Guangzhou y Yiwu
-          const distGZ = calcularDistanciaKm(coords.lat, coords.lng, GUANGZHOU_COORDS.lat, GUANGZHOU_COORDS.lng);
-          const distYW = calcularDistanciaKm(coords.lat, coords.lng, YIWU_COORDS.lat, YIWU_COORDS.lng);
-          setValue("distanciaGuangzhou", distGZ, { shouldDirty: true });
-          setValue("distanciaYiwu", distYW, { shouldDirty: true });
-        }
+    if (codigo.length < 2) return;
+
+    const zona = buscarCodigoPostal(codigo);
+    if (!zona) return;
+
+    // Siempre rellenar provincia
+    setValue("provincia", `${zona.provincia} (${zona.provinciaZh})`, { shouldDirty: true });
+
+    // Ciudad: rellenar si hay 4+ dígitos
+    if (codigo.length >= 4 && zona.ciudad) {
+      setValue("ciudad", `${zona.ciudad}${zona.ciudadZh ? ` (${zona.ciudadZh})` : ""}`, { shouldDirty: true });
+    }
+
+    // Distrito: rellenar si hay 5+ dígitos y se encontró
+    if (codigo.length >= 5 && zona.distrito) {
+      setValue("distrito", zona.distrito, { shouldDirty: true });
+    }
+
+    // Coords y distancias: calcular con 4+ dígitos
+    if (codigo.length >= 4) {
+      const coords = getCoordsParaZona(zona);
+      if (coords) {
+        setValue("lat", coords.lat, { shouldDirty: true });
+        setValue("lng", coords.lng, { shouldDirty: true });
+
+        // Distancias en km usando Haversine
+        const distGZ = calcularDistanciaKm(coords.lat, coords.lng, GUANGZHOU_COORDS.lat, GUANGZHOU_COORDS.lng);
+        const distYW = calcularDistanciaKm(coords.lat, coords.lng, YIWU_COORDS.lat, YIWU_COORDS.lng);
+        setValue("distanciaGuangzhou", distGZ, { shouldDirty: true });
+        setValue("distanciaYiwu", distYW, { shouldDirty: true });
+
+        // Tiempo de vuelo estimado: velocidad crucero ~850 km/h + 1h de maniobras
+        const vueloHorasGZ = distGZ / 850 + 1;
+        const vueloHorasYW = distYW / 850 + 1;
+        const formatVuelo = (h: number) => {
+          if (h < 1.5) return "~1h";
+          const horas = Math.floor(h);
+          const mins = Math.round((h - horas) * 60 / 15) * 15;
+          return mins > 0 ? `~${horas}h ${mins}min` : `~${horas}h`;
+        };
+        setValue("tiempoVueloGuangzhou", formatVuelo(vueloHorasGZ), { shouldDirty: true });
+        setValue("tiempoVueloYiwu", formatVuelo(vueloHorasYW), { shouldDirty: true });
       }
     }
   }, [codigoPostal, setValue]);

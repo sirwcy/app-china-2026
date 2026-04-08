@@ -191,6 +191,7 @@ model Usuario {
   nroWechat      String?
   passwordHash   String
   rol            String   @default("LECTOR")
+  fotoUrl        String?
   creadoEn       DateTime @default(now())
   actualizadoEn  DateTime @updatedAt
 
