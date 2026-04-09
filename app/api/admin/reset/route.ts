@@ -19,7 +19,9 @@ export async function POST(req: NextRequest) {
     const ok = await verifyPassword(password, usuario.passwordHash);
     if (!ok) return NextResponse.json({ error: "Contraseña incorrecta" }, { status: 403 });
 
-    // Borrar en orden para respetar FK: precios → producto_proveedor → productos y proveedores
+    // Borrar en orden para respetar FK
+    await prisma.fotoRelacion.deleteMany();
+    await prisma.archivoRelacion.deleteMany();
     await prisma.precioProveedor.deleteMany();
     await prisma.productoProveedor.deleteMany();
     await prisma.archivoProducto.deleteMany();

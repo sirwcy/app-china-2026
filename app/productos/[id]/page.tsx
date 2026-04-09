@@ -45,6 +45,8 @@ export default async function ProductoDetallePage({ params }: PageProps) {
             },
           },
           precios: { orderBy: { moq: "asc" } },
+          fotos: { orderBy: { creadoEn: "asc" } },
+          archivos: { orderBy: { creadoEn: "asc" } },
         },
       }),
       prisma.proveedor.findMany({ orderBy: { nombreEmpresa: "asc" } }),
@@ -66,7 +68,11 @@ export default async function ProductoDetallePage({ params }: PageProps) {
     <AppLayout title={producto.nombreCorto}>
       <ProductoDetalleCliente
         producto={productoConIds}
-        relaciones={relaciones}
+        relaciones={relaciones.map(r => ({
+          ...r,
+          fotos: r.fotos.map(f => ({ ...f, creadoEn: f.creadoEn.toISOString() })),
+          archivos: r.archivos.map(a => ({ ...a, creadoEn: a.creadoEn.toISOString() })),
+        }))}
         todosLosProveedores={todosLosProveedores}
         categorias={categorias}
         subcategorias={subcategorias}

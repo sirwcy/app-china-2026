@@ -127,9 +127,35 @@ model ProductoProveedor {
   producto  Producto  @relation(fields: [productoId], references: [id], onDelete: Cascade)
   proveedor Proveedor @relation(fields: [proveedorId], references: [id], onDelete: Cascade)
   precios   PrecioProveedor[]
+  fotos     FotoRelacion[]
+  archivos  ArchivoRelacion[]
 
   @@unique([productoId, proveedorId])
   @@map("producto_proveedor")
+}
+
+model FotoRelacion {
+  id                  Int               @id @default(autoincrement())
+  productoProveedorId Int
+  url                 String
+  descripcion         String?
+  creadoEn            DateTime          @default(now())
+  productoProveedor   ProductoProveedor @relation(fields: [productoProveedorId], references: [id], onDelete: Cascade)
+
+  @@map("fotos_relacion")
+}
+
+model ArchivoRelacion {
+  id                  Int               @id @default(autoincrement())
+  productoProveedorId Int
+  nombre              String
+  url                 String
+  tipo                String
+  tamano              Int?
+  creadoEn            DateTime          @default(now())
+  productoProveedor   ProductoProveedor @relation(fields: [productoProveedorId], references: [id], onDelete: Cascade)
+
+  @@map("archivos_relacion")
 }
 
 model PrecioProveedor {

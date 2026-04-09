@@ -22,6 +22,7 @@ interface ArchivoUploaderProps {
   /** Solo imágenes, PDF y Excel (para catálogos de proveedor) */
   soloDocumentos?: boolean;
   apiBase?: string; // override de ruta API
+  onArchivosChange?: (archivos: Archivo[]) => void;
 }
 
 const TIPO_ICON: Record<string, React.ElementType> = {
@@ -54,6 +55,7 @@ export default function ArchivoUploader({
   initialArchivos = [],
   soloDocumentos = false,
   apiBase,
+  onArchivosChange,
 }: ArchivoUploaderProps) {
   const [archivos, setArchivos] = useState<Archivo[]>(initialArchivos);
   const [uploading, setUploading] = useState(false);
@@ -82,7 +84,11 @@ export default function ArchivoUploader({
           throw new Error(err.error || "Error al subir");
         }
         const nuevo: Archivo = await res.json();
-        setArchivos((prev) => [...prev, nuevo]);
+        setArchivos((prev) => {
+          const updated = [...prev, nuevo];
+          onArchivosChange?.(updated);
+          return updated;
+        });
       } catch (e: unknown) {
         setUploadError(e instanceof Error ? e.message : "Error al subir archivo");
       } finally {
@@ -113,7 +119,13 @@ export default function ArchivoUploader({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ archivoId: id }),
     });
-    if (res.ok) setArchivos((prev) => prev.filter((a) => a.id !== id));
+    if (res.ok) {
+      setArchivos((prev) => {
+        const updated = prev.filter((a) => a.id !== id);
+        onArchivosChange?.(updated);
+        return updated;
+      });
+    }
   }
 
   // Grabar audio
