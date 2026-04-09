@@ -15,7 +15,7 @@ import ProductoForm from "@/components/productos/ProductoForm";
 import ProveedorForm from "@/components/proveedores/ProveedorForm";
 import { desvincularProveedor } from "@/lib/actions/relaciones";
 import type { SelectOption } from "@/components/ui/CreatableSelect";
-import ArchivoUploader, { type Archivo } from "@/components/archivos/ArchivoUploader";
+import ArchivoUploader from "@/components/archivos/ArchivoUploader";
 
 interface SubcategoriaOption extends SelectOption {
   categoriaId: number;
@@ -97,7 +97,6 @@ interface ProductoDetalleClienteProps {
   subcategorias: SubcategoriaOption[];
   materiales: SelectOption[];
   etiquetas: EtiquetaOption[];
-  archivos?: Archivo[];
 }
 
 export default function ProductoDetalleCliente({
@@ -108,7 +107,6 @@ export default function ProductoDetalleCliente({
   subcategorias,
   materiales,
   etiquetas,
-  archivos = [],
 }: ProductoDetalleClienteProps) {
   const [panelRelacion, setPanelRelacion] = useState(false);
   const [panelEditar, setPanelEditar] = useState(false);
@@ -247,19 +245,6 @@ export default function ProductoDetalleCliente({
           ))}
         </div>
       )}
-
-      {/* Sección de archivos adjuntos del producto */}
-      <div className="mt-8 pt-6 border-t border-white/8">
-        <div className="flex items-center gap-2 mb-4">
-          <Paperclip size={16} className="text-[#FFDE00]" />
-          <h2 className="text-base font-semibold text-white">Archivos del producto</h2>
-        </div>
-        <ArchivoUploader
-          productoId={producto.id}
-          initialArchivos={archivos}
-          apiBase={`/api/archivos/producto/${producto.id}`}
-        />
-      </div>
 
       {/* Panel: vincular / editar relación */}
       <SlideOver
@@ -452,7 +437,6 @@ function RelacionCard({
               productoId={0}
               initialArchivos={archivos.map(a => ({ ...a }))}
               apiBase={`/api/relaciones/${relacion.id}/archivos`}
-              soloDocumentos
               onArchivosChange={(updated) => setArchivos(updated as ArchivoRel[])}
             />
           </div>

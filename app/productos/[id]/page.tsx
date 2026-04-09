@@ -14,7 +14,7 @@ export default async function ProductoDetallePage({ params }: PageProps) {
   const productoId = parseInt(id, 10);
   if (isNaN(productoId)) notFound();
 
-  const [producto, relaciones, todosLosProveedores, categorias, subcategorias, materiales, etiquetas, archivos] =
+  const [producto, relaciones, todosLosProveedores, categorias, subcategorias, materiales, etiquetas] =
     await Promise.all([
       prisma.producto.findUnique({
         where: { id: productoId },
@@ -54,7 +54,6 @@ export default async function ProductoDetallePage({ params }: PageProps) {
       prisma.subcategoria.findMany({ orderBy: { nombre: "asc" } }),
       prisma.material.findMany({ orderBy: { nombre: "asc" } }),
       prisma.etiqueta.findMany({ orderBy: { nombre: "asc" } }),
-      prisma.archivoProducto.findMany({ where: { productoId }, orderBy: { creadoEn: "asc" } }),
     ]);
 
   if (!producto) notFound();
@@ -78,7 +77,6 @@ export default async function ProductoDetallePage({ params }: PageProps) {
         subcategorias={subcategorias}
         materiales={materiales}
         etiquetas={etiquetas}
-        archivos={archivos.map(a => ({ ...a, creadoEn: a.creadoEn.toISOString() }))}
       />
     </AppLayout>
   );

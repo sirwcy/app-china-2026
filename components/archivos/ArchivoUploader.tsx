@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import {
   ImageIcon, FileText, FileSpreadsheet, Mic, Video,
   Upload, Trash2, Loader2, StopCircle, Camera, ExternalLink, FileType,
@@ -73,6 +73,14 @@ export default function ArchivoUploader({
   const streamRef = useRef<MediaStream | null>(null);
 
   const endpoint = apiBase ?? `/api/archivos/producto/${productoId}`;
+
+  // Adjuntar stream al elemento <video> una vez que se renderiza (grabandoVideo=true)
+  useEffect(() => {
+    if (grabandoVideo && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+      videoRef.current.play().catch(() => {});
+    }
+  }, [grabandoVideo]);
 
   const uploadFile = useCallback(
     async (file: File) => {
@@ -169,11 +177,6 @@ export default function ArchivoUploader({
         video: { facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
       });
       streamRef.current = stream;
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play().catch(() => {});
-      }
 
       // Detectar si hay cámara trasera disponible
       const devices = await navigator.mediaDevices.enumerateDevices();
