@@ -202,19 +202,18 @@ export default function ProveedorDetalleCliente({ proveedor, productos, catalogo
         )}
       </div>
 
-      {/* Catálogo */}
+      {/* Archivos del proveedor */}
       <div className="pt-6 border-t border-white/8">
         <div className="flex items-center gap-2 mb-4">
           <BookOpen size={16} className="text-[#DE2910]" />
-          <h2 className="text-base font-semibold text-white">Catálogo</h2>
+          <h2 className="text-base font-semibold text-white">Archivos del proveedor</h2>
           <span className="text-[10px] text-gray-600 border border-white/10 rounded px-1.5 py-0.5">
-            PDF · Excel · Imágenes
+            Imágenes · PDF · Excel · Audio · Video
           </span>
         </div>
         <ArchivoUploader
           productoId={proveedor.id}
           initialArchivos={catalogos}
-          soloDocumentos={true}
           apiBase={`/api/archivos/catalogo/${proveedor.id}`}
         />
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { Plus, Search, PackageOpen, ChevronDown, ChevronRight, Pencil, Trash2, ExternalLink, Users, FolderOpen, Folder, LayoutList, Building2 } from "lucide-react";
 import Link from "next/link";
 import ProductoForm from "./ProductoForm";
@@ -52,6 +53,7 @@ export default function ProductosCliente({
   materiales,
   etiquetas,
 }: ProductosClienteProps) {
+  const router = useRouter();
   const [busqueda, setBusqueda] = useState("");
   const [panelAbierto, setPanelAbierto] = useState(false);
   const [productoEditar, setProductoEditar] = useState<Producto | null>(null);
@@ -396,7 +398,10 @@ export default function ProductosCliente({
           subcategorias={subcategorias}
           materiales={materiales}
           etiquetas={etiquetas}
-          onSuccess={cerrarPanel}
+          onSuccess={(nuevo) => {
+            cerrarPanel();
+            if (nuevo?.id) router.push(`/productos/${nuevo.id}`);
+          }}
           onCancel={cerrarPanel}
         />
       </SlideOver>

@@ -126,7 +126,20 @@ export default function ProveedorForm({ proveedor, onSuccess, onCancel }: Provee
 
   useEffect(() => {
     const codigo = (codigoPostal ?? "").replace(/\D/g, "");
-    if (codigo.length < 2) return;
+
+    // Si el código postal fue borrado, limpiar todos los campos derivados
+    if (codigo.length < 2) {
+      setValue("provincia", "", { shouldDirty: true });
+      setValue("ciudad", "", { shouldDirty: true });
+      setValue("distrito", "", { shouldDirty: true });
+      setValue("lat", null, { shouldDirty: true });
+      setValue("lng", null, { shouldDirty: true });
+      setValue("distanciaGuangzhou", null, { shouldDirty: true });
+      setValue("tiempoVueloGuangzhou", "", { shouldDirty: true });
+      setValue("distanciaYiwu", null, { shouldDirty: true });
+      setValue("tiempoVueloYiwu", "", { shouldDirty: true });
+      return;
+    }
 
     const zona = buscarCodigoPostal(codigo);
     if (!zona) return;

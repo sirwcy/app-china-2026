@@ -5,8 +5,6 @@ import { getSession } from "@/lib/session";
 
 type Params = { params: Promise<{ id: string }> };
 
-const TIPOS_PERMITIDOS = ["imagen", "pdf", "excel"];
-
 export async function GET(_req: NextRequest, { params }: Params) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
@@ -31,13 +29,6 @@ export async function POST(req: NextRequest, { params }: Params) {
   if (!file) return NextResponse.json({ error: "Sin archivo" }, { status: 400 });
 
   const tipo = detectTipo(file.type, file.name);
-  if (!TIPOS_PERMITIDOS.includes(tipo)) {
-    return NextResponse.json(
-      { error: "Solo se permiten imágenes, PDF y Excel" },
-      { status: 400 }
-    );
-  }
-
   const ext = file.name.split(".").pop() ?? "bin";
   const path = `catalogos/${proveedorId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
@@ -55,7 +46,8 @@ export async function DELETE(req: NextRequest, { params }: Params) {
   if (!session) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
 
   await params;
-  const { catalogoId } = await req.json();
+  const body = await req.json();
+  const catalogoId = body.archivoId ?? body.catalogoId;
 
   const catalogo = await prisma.catalogoProveedor.findUnique({ where: { id: catalogoId } });
   if (!catalogo) return NextResponse.json({ error: "No encontrado" }, { status: 404 });

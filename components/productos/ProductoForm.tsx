@@ -42,7 +42,7 @@ interface ProductoFormProps {
   subcategorias: SubcategoriaOption[];
   materiales: SelectOption[];
   etiquetas: EtiquetaOption[];
-  onSuccess: () => void;
+  onSuccess: (nuevo?: { id: number; nombreCorto: string }) => void;
   onCancel: () => void;
 }
 
@@ -163,10 +163,11 @@ export default function ProductoForm({
     try {
       if (esEdicion) {
         await actualizarProducto(producto.id, { ...data, etiquetaIds: etiquetasSeleccionadas });
+        onSuccess();
       } else {
-        await crearProducto({ ...data, etiquetaIds: etiquetasSeleccionadas });
+        const nuevo = await crearProducto({ ...data, etiquetaIds: etiquetasSeleccionadas });
+        onSuccess({ id: nuevo.id, nombreCorto: nuevo.nombreCorto });
       }
-      onSuccess();
     } catch {
       setServerError("Ocurrió un error. Intenta nuevamente.");
     }

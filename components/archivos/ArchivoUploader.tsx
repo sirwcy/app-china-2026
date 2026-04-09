@@ -62,12 +62,15 @@ export default function ArchivoUploader({
   const [uploadError, setUploadError] = useState("");
   const [dragging, setDragging] = useState(false);
 
-  // Audio recording
+  // Audio/Video recording
   const [grabandoAudio, setGrabandoAudio] = useState(false);
   const [grabandoVideo, setGrabandoVideo] = useState(false);
+  const [camaraTraseraDisponible, setCamaraTraseraDisponible] = useState(false);
+  const [usarCamaraFrontal, setUsarCamaraFrontal] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   const endpoint = apiBase ?? `/api/archivos/producto/${productoId}`;
 
@@ -154,27 +157,50 @@ export default function ArchivoUploader({
     setGrabandoAudio(false);
   }
 
-  // Grabar video (max 60 seg)
-  async function iniciarVideo() {
+  // Grabar video con selección de cámara
+  async function iniciarVideo(frontal = false) {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+      // Detener stream anterior si existe
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+
+      const facingMode = frontal ? "user" : "environment";
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: { facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+      });
+      streamRef.current = stream;
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.play();
+        videoRef.current.play().catch(() => {});
       }
-      const recorder = new MediaRecorder(stream);
+
+      // Detectar si hay cámara trasera disponible
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoCams = devices.filter((d) => d.kind === "videoinput");
+      setCamaraTraseraDisponible(videoCams.length > 1);
+      setUsarCamaraFrontal(frontal);
+
+      const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
+        ? "video/webm;codecs=vp9"
+        : "video/webm";
+      const recorder = new MediaRecorder(stream, { mimeType });
       chunksRef.current = [];
-      recorder.ondataavailable = (e) => chunksRef.current.push(e.data);
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
       recorder.onstop = () => {
         stream.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
         if (videoRef.current) videoRef.current.srcObject = null;
-        const blob = new Blob(chunksRef.current, { type: "video/webm" });
+        const blob = new Blob(chunksRef.current, { type: mimeType });
         const file = new File([blob], `video-${Date.now()}.webm`, { type: "video/webm" });
         uploadFile(file);
       };
-      recorder.start();
+      recorder.start(100); // timeslice para ondataavailable frecuente
       mediaRecorderRef.current = recorder;
       setGrabandoVideo(true);
+
       // Detener automáticamente a los 60 segundos
       setTimeout(() => {
         if (mediaRecorderRef.current?.state === "recording") detenerVideo();
@@ -187,6 +213,10 @@ export default function ArchivoUploader({
   function detenerVideo() {
     mediaRecorderRef.current?.stop();
     setGrabandoVideo(false);
+  }
+
+  function cambiarCamara() {
+    iniciarVideo(!usarCamaraFrontal);
   }
 
   const accept = soloDocumentos
@@ -268,18 +298,31 @@ export default function ArchivoUploader({
         {/* Video */}
         {!soloDocumentos && (
           grabandoVideo ? (
-            <button
-              type="button"
-              onClick={detenerVideo}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-orange-500/40 bg-orange-500/15 text-orange-300 text-sm animate-pulse"
-            >
-              <StopCircle size={14} />
-              Detener video
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={detenerVideo}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-orange-500/40 bg-orange-500/15 text-orange-300 text-sm animate-pulse"
+              >
+                <StopCircle size={14} />
+                Detener
+              </button>
+              {camaraTraseraDisponible && (
+                <button
+                  type="button"
+                  onClick={cambiarCamara}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/15 bg-white/5 text-gray-300 text-sm hover:bg-white/10 transition-colors"
+                  title="Cambiar cámara"
+                >
+                  <Camera size={14} />
+                  {usarCamaraFrontal ? "Trasera" : "Frontal"}
+                </button>
+              )}
+            </div>
           ) : (
             <button
               type="button"
-              onClick={iniciarVideo}
+              onClick={() => iniciarVideo(false)}
               disabled={grabandoAudio || uploading}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-orange-500/25 bg-orange-500/8 text-orange-400 text-sm hover:bg-orange-500/15 transition-colors disabled:opacity-40"
             >
@@ -292,11 +335,21 @@ export default function ArchivoUploader({
 
       {/* Preview video en vivo */}
       {grabandoVideo && (
-        <video
-          ref={videoRef}
-          muted
-          className="w-full max-h-48 rounded-xl bg-black object-cover border border-orange-500/30"
-        />
+        <div className="relative rounded-xl overflow-hidden border border-orange-500/30 bg-black">
+          <video
+            ref={videoRef}
+            muted
+            playsInline
+            className={`w-full max-h-56 object-cover ${usarCamaraFrontal ? "scale-x-[-1]" : ""}`}
+          />
+          <div className="absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 rounded-full bg-red-600/80 text-white text-xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+            REC
+          </div>
+          <div className="absolute bottom-2 right-2 text-xs text-white/60 bg-black/50 px-2 py-0.5 rounded">
+            {usarCamaraFrontal ? "Cámara frontal" : "Cámara trasera"}
+          </div>
+        </div>
       )}
 
       {/* Estado de upload */}
