@@ -160,10 +160,10 @@ model ArchivoRelacion {
 
 model PrecioProveedor {
   id                  Int               @id @default(autoincrement())
-  productoProveedorId Int
+  productoProveedorId Int               @map("producto_proveedor_id")
   precio              Float
   moq                 Int
-  creadoEn            DateTime          @default(now())
+  creadoEn            DateTime          @default(now()) @map("creado_en")
 
   productoProveedor   ProductoProveedor @relation(fields: [productoProveedorId], references: [id], onDelete: Cascade)
 
