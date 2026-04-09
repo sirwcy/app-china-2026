@@ -1,8 +1,36 @@
-export default function AnalisisPage() {
+import { prisma } from "@/lib/prisma";
+import AppLayout from "@/components/AppLayout";
+import AnalisisCliente from "@/components/analisis/AnalisisCliente";
+
+export const dynamic = "force-dynamic";
+
+export default async function AnalisisPage() {
+  const relaciones = await prisma.productoProveedor.findMany({
+    include: {
+      producto: {
+        include: {
+          categoria: true,
+          subcategoria: true,
+          material: true,
+        },
+      },
+      proveedor: {
+        select: {
+          id: true,
+          nombreEmpresa: true,
+          nombreContacto: true,
+          nroWechat: true,
+          nroWhatsapp: true,
+        },
+      },
+      precios: { orderBy: { moq: "asc" } },
+    },
+    orderBy: { productoId: "asc" },
+  });
+
   return (
-    <main className="min-h-screen p-6">
-      <h1 className="text-2xl font-bold text-white mb-4">📊 Análisis Comparativo</h1>
-      <p className="text-gray-400">Módulo en construcción.</p>
-    </main>
+    <AppLayout title="Análisis Comparativo">
+      <AnalisisCliente relaciones={relaciones} />
+    </AppLayout>
   );
 }
