@@ -40,10 +40,12 @@ export async function uploadFile(
   path: string,
   contentType: string
 ): Promise<string> {
-  const buffer = Buffer.from(await (file as Blob).arrayBuffer());
+  // Usamos Uint8Array en lugar de Buffer para compatibilidad con edge runtime
+  const arrayBuffer = await (file as Blob).arrayBuffer();
+  const bytes = new Uint8Array(arrayBuffer);
   const { error } = await supabase.storage
     .from(BUCKET)
-    .upload(path, buffer, { contentType, upsert: false });
+    .upload(path, bytes, { contentType, upsert: false });
   if (error) throw new Error(error.message);
   return getPublicUrl(path);
 }

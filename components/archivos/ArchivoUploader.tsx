@@ -89,11 +89,25 @@ export default function ArchivoUploader({
       try {
         const fd = new FormData();
         fd.append("file", file);
-        const res = await fetch(endpoint, { method: "POST", body: fd });
-        if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.error || "Error al subir");
+
+        let res: Response;
+        try {
+          res = await fetch(endpoint, { method: "POST", body: fd });
+        } catch {
+          throw new Error("Sin conexión — no se pudo contactar al servidor");
         }
+
+        if (!res.ok) {
+          let msg = `Error del servidor (${res.status})`;
+          try {
+            const err = await res.json();
+            msg = err.error || msg;
+          } catch {
+            // El servidor respondió con HTML u otro formato no-JSON
+          }
+          throw new Error(msg);
+        }
+
         const nuevo: Archivo = await res.json();
         setArchivos((prev) => {
           const updated = [...prev, nuevo];

@@ -21,24 +21,29 @@ export async function POST(req: NextRequest, { params }: Params) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
 
-  const { id } = await params;
-  const productoId = parseInt(id);
+  try {
+    const { id } = await params;
+    const productoId = parseInt(id);
 
-  const formData = await req.formData();
-  const file = formData.get("file") as File | null;
-  if (!file) return NextResponse.json({ error: "Sin archivo" }, { status: 400 });
+    const formData = await req.formData();
+    const file = formData.get("file") as File | null;
+    if (!file) return NextResponse.json({ error: "Sin archivo" }, { status: 400 });
 
-  const tipo = detectTipo(file.type, file.name);
-  const ext = file.name.split(".").pop() ?? "bin";
-  const path = `productos/${productoId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const tipo = detectTipo(file.type, file.name);
+    const ext = file.name.split(".").pop() ?? "bin";
+    const path = `productos/${productoId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
-  const url = await uploadFile(file, path, file.type);
+    const url = await uploadFile(file, path, file.type);
 
-  const archivo = await prisma.archivoProducto.create({
-    data: { productoId, nombre: file.name, url, tipo, tamano: file.size },
-  });
+    const archivo = await prisma.archivoProducto.create({
+      data: { productoId, nombre: file.name, url, tipo, tamano: file.size },
+    });
 
-  return NextResponse.json(archivo, { status: 201 });
+    return NextResponse.json(archivo, { status: 201 });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Error interno al subir archivo";
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
 }
 
 export async function DELETE(req: NextRequest, { params }: Params) {

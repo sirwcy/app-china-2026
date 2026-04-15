@@ -21,24 +21,29 @@ export async function POST(req: NextRequest, { params }: Params) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
 
-  const { id } = await params;
-  const relacionId = parseInt(id);
+  try {
+    const { id } = await params;
+    const relacionId = parseInt(id);
 
-  const formData = await req.formData();
-  const file = formData.get("file") as File | null;
-  const descripcion = formData.get("descripcion") as string | null;
-  if (!file) return NextResponse.json({ error: "Sin archivo" }, { status: 400 });
+    const formData = await req.formData();
+    const file = formData.get("file") as File | null;
+    const descripcion = formData.get("descripcion") as string | null;
+    if (!file) return NextResponse.json({ error: "Sin archivo" }, { status: 400 });
 
-  const ext = file.name.split(".").pop() ?? "jpg";
-  const path = `relaciones/${relacionId}/fotos/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const ext = file.name.split(".").pop() ?? "jpg";
+    const path = `relaciones/${relacionId}/fotos/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
-  const url = await uploadFile(file, path, file.type);
+    const url = await uploadFile(file, path, file.type);
 
-  const foto = await prisma.fotoRelacion.create({
-    data: { productoProveedorId: relacionId, url, descripcion: descripcion || null },
-  });
+    const foto = await prisma.fotoRelacion.create({
+      data: { productoProveedorId: relacionId, url, descripcion: descripcion || null },
+    });
 
-  return NextResponse.json(foto, { status: 201 });
+    return NextResponse.json(foto, { status: 201 });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Error interno al subir foto";
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
 }
 
 export async function DELETE(req: NextRequest, { params }: Params) {
