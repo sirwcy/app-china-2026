@@ -10,7 +10,7 @@ export const proveedorSchema = z.object({
     .min(2, "Mínimo 2 caracteres")
     .max(100, "Máximo 100 caracteres"),
   nroLicencia: z.string().max(60).optional().nullable().or(z.literal("")),
-  nroWechat: z.string().max(60).optional().nullable().or(z.literal("")),
+  nroWechat: z.string().max(12, "Máximo 12 dígitos").regex(/^\d*$/, "Solo dígitos numéricos").optional().nullable().or(z.literal("")),
   nroWhatsapp: z.string().max(30).optional().nullable().or(z.literal("")),
   direccion: z.string().max(200).optional().nullable().or(z.literal("")),
   lat: z.number().min(-90).max(90).optional().nullable(),

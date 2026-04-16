@@ -14,7 +14,7 @@ export default async function ProveedorDetallePage({ params }: PageProps) {
   const proveedorId = parseInt(id, 10);
   if (isNaN(proveedorId)) notFound();
 
-  const [proveedor, productos, catalogos] = await Promise.all([
+  const [proveedor, productos, catalogos, fotos] = await Promise.all([
     prisma.proveedor.findUnique({ where: { id: proveedorId } }),
     prisma.productoProveedor.findMany({
       where: { proveedorId },
@@ -28,6 +28,10 @@ export default async function ProveedorDetallePage({ params }: PageProps) {
       where: { proveedorId },
       orderBy: { creadoEn: "asc" },
     }),
+    prisma.fotoProveedor.findMany({
+      where: { proveedorId },
+      orderBy: { creadoEn: "asc" },
+    }),
   ]);
 
   if (!proveedor) notFound();
@@ -38,6 +42,7 @@ export default async function ProveedorDetallePage({ params }: PageProps) {
         proveedor={proveedor}
         productos={productos}
         catalogos={catalogos.map((c) => ({ ...c, creadoEn: c.creadoEn.toISOString() }))}
+        fotos={fotos}
       />
     </AppLayout>
   );

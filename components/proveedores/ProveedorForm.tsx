@@ -248,12 +248,26 @@ export default function ProveedorForm({ proveedor, onSuccess, onCancel }: Provee
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Input
-          label="WeChat"
-          placeholder="ID de WeChat"
-          error={errors.nroWechat?.message}
-          {...register("nroWechat")}
-        />
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-gray-300">WeChat</label>
+          <input
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            maxLength={12}
+            placeholder="Solo números"
+            className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500 transition-colors focus:outline-none focus:ring-2 focus:ring-[#DE2910]/60 focus:border-[#DE2910]/60 hover:border-white/20 font-mono tracking-widest"
+            {...register("nroWechat", {
+              onChange: (e) => {
+                e.target.value = e.target.value.replace(/\D/g, "").slice(0, 12);
+              },
+            })}
+          />
+          {errors.nroWechat && (
+            <p className="text-xs text-red-400">{errors.nroWechat.message}</p>
+          )}
+          <p className="text-xs text-gray-600">Máximo 12 dígitos</p>
+        </div>
         <Controller
           control={control}
           name="nroWhatsapp"

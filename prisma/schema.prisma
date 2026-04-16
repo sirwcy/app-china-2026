@@ -105,6 +105,7 @@ model Proveedor {
   tiempoVueloGuangzhou  String?
   distanciaYiwu         Float?
   tiempoVueloYiwu       String?
+  tarjetaUrl     String?
   fotos          FotoProveedor[]
   catalogos      CatalogoProveedor[]
   creadoEn       DateTime           @default(now())
